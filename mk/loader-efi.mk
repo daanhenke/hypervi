@@ -14,15 +14,16 @@ EFI_TGT=$(DIR_DIST)/loader-efi.efi
 $(eval $(call add_targets,$(EFI_TGT)))
 
 EFI_SOURCES := \
-	loader/efi/main.cc
+	loader/efi/main.cc \
+	loader/efi/console.cc
 $(eval $(call convert_sources,EFI))
 
 $(DIR_OBJ)/$(current_target_name)/%.cc.o: $(DIR_SOURCE)/%.cc
-	$(call log,(CXX) $@)
+	$(call log,loader/efi,(CXX) $@)
 	$(call ensure_dir)
 	@$(CXX) $(EFI_CFLAGS) -c $< -o $@
 
 $(EFI_TGT): $(EFI_OBJECTS)
-	$(call log,(LD) $@)
+	$(call log,loader/efi,(LD) $@)
 	$(call ensure_dir)
 	@$(LD) $(EFI_LDFLAGS) -out:$@ $^

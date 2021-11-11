@@ -1,0 +1,3 @@
+[submodule "tools/monobit"]
+	path = tools/monobit
+	url = https://github.com/robhagemans/monobit

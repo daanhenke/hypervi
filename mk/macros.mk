@@ -19,7 +19,7 @@ $(1)_OBJECTS := $(addsuffix .o,$(addprefix $(DIR_OBJ)/$(current_target_name)/,$(
 endef
 
 define log
-	@printf "%s\n" "[$(current_target_name)]: $1"
+	@printf "%s\n" "[$1]: $2"
 endef
 
 define ensure_dir

@@ -2,8 +2,18 @@
 
 #include "freestanding/types.h"
 
+#define ESTR(x) const_cast<wchar_t*>(L"" x)
+
 typedef void* efi_handle;
 typedef wchar_t efi_char16;
+
+typedef struct
+{
+    u32 p1;
+    u16 p2;
+    u16 p3;
+    u8 p4[8];
+} efi_guid;
 
 typedef struct
 {

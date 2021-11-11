@@ -7,6 +7,6 @@ ISO_PATHS := $(addprefix $(DIR_ISO)/,$(ISO_FILES))
 $(eval $(call add_targets,$(ISO_PATHS)))
 
 $(DIR_ISO)/EFI/BOOTX64/BOOTX64.EFI: $(EFI_TGT)
-	$(call log,Copying $(notdir $@))
+	$(call log,iso,Copying $(notdir $@))
 	$(call ensure_dir)
 	@cp $< $@
