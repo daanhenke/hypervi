@@ -6,9 +6,9 @@ include ./mk/base.mk
 
 MK_MODULES := \
 	hypervisor \
+	assets \
 	loader-efi \
 	iso \
-	assets
 
 $(call inc_mk,$(MK_MODULES))
 all: $(TARGETS)

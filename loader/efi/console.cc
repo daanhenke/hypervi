@@ -1,4 +1,5 @@
 #include "loader/efi/common.h"
+#include "bitmapfont.png.h"
 
 const efi_guid gop_guid = efi_gop_guid;
 efi_gop* gop = nullptr;
@@ -60,6 +61,6 @@ void efi_console_init()
         }
     }
 
-    efi_gop_pixel_blt col = {11, 11, 11, 0};
-    gop->blt(gop, &col, efi_gop_blt_operation::video_fill, 0, 0, 0, 0, gop->mode->info->horizontal_resolution, gop->mode->info->vertical_resolution, 0);
+    auto col = reinterpret_cast<efi_gop_pixel_blt*>(const_cast<unsigned char*>(bitmapfont_image_data));
+    gop->blt(gop, col, efi_gop_blt_operation::video_fill, 0, 0, 0, 0, gop->mode->info->horizontal_resolution, gop->mode->info->vertical_resolution, 0);
 }

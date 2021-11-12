@@ -18,7 +18,7 @@ $(DIR_ASSETS_OUT)/bitmapfont.png: $(DIR_ASSETS_IN)/font.bdf
 $(DIR_ASSETS_OUT)/bitmapfont.bin: $(DIR_ASSETS_OUT)/bitmapfont.png
 	$(call log,assets,Creating bin $(notdir $@))
 	$(call ensure_dir)
-	@cd $(DIR_ASSETS_OUT) && $(DIR_TOOLS)/bin2png.py -d $(notdir $@)
+	@cd $(DIR_ASSETS_OUT) && $(DIR_TOOLS)/bin2png.py -d $(notdir $@) /dev/null
 
 $(DIR_ASSETS_OUT)/%.h: $(DIR_ASSETS_OUT)/%
-	@$(DIR_TOOLS)/bin2h.py $< font_bin > $@
+	@$(DIR_TOOLS)/png2h.py $(basename $(notdir $<)) $< $@
