@@ -2,6 +2,7 @@
 
 #include "freestanding/efi/core.h"
 #include "freestanding/efi/stop.h"
+#include "freestanding/efi/stip.h"
 #include "freestanding/efi/boot_services.h"
 
 typedef struct
@@ -12,7 +13,7 @@ typedef struct
     u32 firwmare_revision;
 
     efi_handle handle_con_in;
-    efi_handle con_in;
+    efi_stip* con_in;
 
     efi_handle handle_con_out;
     efi_stop* con_out;

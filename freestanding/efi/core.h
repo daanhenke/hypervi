@@ -5,6 +5,7 @@
 #define ESTR(x) const_cast<wchar_t*>(L"" x)
 
 typedef void* efi_handle;
+typedef void* efi_event;
 typedef wchar_t efi_char16;
 
 typedef struct

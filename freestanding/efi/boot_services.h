@@ -31,12 +31,14 @@ typedef struct efi_boot_services
 
     efi_status (*get_memory_map)(size_t* memory_map_size, void* not_yet_implemented);
 
-    u64 padding[11];
+    u64 padding[4];
+    efi_status (*wait_for_event)(u64 event_count, efi_event* events, u64* index);
+    u64 padding2[6];
 
     efi_status (*handle_protocol)(efi_handle handle, efi_guid* protocol, void** interface);
     void* reserved;
 
-    u64 padding2[18];
+    u64 padding3[18];
 
     efi_status (*locate_handle_buffer)(efi_locate_search_type search_type, efi_guid* protocol, void* search_key, size_t* handle_count, efi_handle** buffer);
 

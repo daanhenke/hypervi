@@ -1,11 +1,10 @@
+#include "loader/efi/gfx.h"
 #include "loader/efi/common.h"
 #include "bitmapfont.png.h"
 #include "logo.png.h"
 
 const efi_guid gop_guid = efi_gop_guid;
 efi_gop* gop = nullptr;
-
-#define log(str) gST->con_out->output_string(gST->con_out, ESTR(str))
 
 void efi_gfx_blit(const unsigned char* image_data, size_t image_width, size_t width, size_t height, size_t dest_x, size_t dest_y, size_t source_x, size_t source_y)
 {
@@ -23,17 +22,16 @@ void efi_gfx_char(size_t x, size_t y, char character)
 
 void efi_gfx_string(size_t x, size_t y, char* string)
 {
+    if (string == nullptr) return efi_gfx_string(x, y, "<nullptr>");
     size_t start_x = x;
-    bool running = true;
-    while (running)
+    while (true)
     {
         char current = *string++;
 
         switch (current)
         {
         case '\0':
-            running = false;
-            break;
+            return;
 
         case '\n':
             x = start_x;
@@ -53,7 +51,7 @@ void efi_gfx_string(size_t x, size_t y, const char* string)
     efi_gfx_string(x, y, const_cast<char*>(string));
 }
 
-void efi_console_init()
+void efi_gfx_init()
 {
     auto boot = gST->boot_services;
 

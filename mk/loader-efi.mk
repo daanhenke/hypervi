@@ -16,7 +16,9 @@ $(eval $(call add_targets,$(EFI_TGT)))
 
 EFI_SOURCES := \
 	loader/efi/main.cc \
-	loader/efi/console.cc
+	loader/efi/gfx.cc \
+	loader/efi/fs.cc \
+	loader/efi/input.cc
 $(eval $(call convert_sources,EFI))
 
 $(DIR_OBJ)/$(current_target_name)/%.cc.o: $(DIR_SOURCE)/%.cc $(DIR_ASSETS_OUT)/bitmapfont.png.h
