@@ -9,6 +9,7 @@ MK_MODULES := \
 	assets \
 	loader-efi \
 	iso \
+	qemu
 
 $(call inc_mk,$(MK_MODULES))
 all: $(TARGETS)

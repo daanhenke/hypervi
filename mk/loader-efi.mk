@@ -18,7 +18,8 @@ EFI_SOURCES := \
 	loader/efi/main.cc \
 	loader/efi/gfx.cc \
 	loader/efi/fs.cc \
-	loader/efi/input.cc
+	loader/efi/input.cc \
+	loader/efi/console.cc
 $(eval $(call convert_sources,EFI))
 
 $(DIR_OBJ)/$(current_target_name)/%.cc.o: $(DIR_SOURCE)/%.cc $(DIR_ASSETS_OUT)/bitmapfont.png.h

@@ -1,7 +1,6 @@
 #include "loader/efi/gfx.h"
 #include "loader/efi/common.h"
 #include "bitmapfont.png.h"
-#include "logo.png.h"
 
 const efi_guid gop_guid = efi_gop_guid;
 efi_gop* gop = nullptr;
@@ -108,9 +107,16 @@ void efi_gfx_init()
 
     auto col = reinterpret_cast<efi_gop_pixel_blt*>(const_cast<unsigned char*>(bitmapfont_image_data));
     gop->blt(gop, col, efi_gop_blt_operation::video_fill, 0, 0, 0, 0, gop->mode->info->horizontal_resolution, gop->mode->info->vertical_resolution, 0);
+}
 
-    efi_gfx_blit(logo_image_data, logo_image_width, logo_image_width, logo_image_height, 1920 / 2 - logo_image_width / 2, 1080 - logo_image_height, 0, 0);
-    efi_gfx_string(0, 0, "GG WP,\nthis took waay to long to implement\nxddddddddddddddddddddddddddddddddddddddddddddddddddd!@#123");
+void efi_gfx_get_res(size_t* width, size_t* height)
+{
+    *width = gop->mode->info->horizontal_resolution;
+    *height = gop->mode->info->vertical_resolution;
+}
 
-    efi_gfx_string(0, 512, "OwO ~~ Whas disss???????\nhvxd");
+void efi_gfx_get_char_size(size_t* width, size_t* height)
+{
+    *width = bitmapfont_image_width / 32;
+    *height = bitmapfont_image_height / 8;
 }

@@ -18,6 +18,26 @@ enum class efi_locate_search_type : u64
     by_protocol
 };
 
+enum class efi_memory_type : size_t
+{
+    reserved_memory_type,
+    loader_code,
+    loader_data,
+    boot_services_code,
+    boot_services_data,
+    runtime_services_code,
+    runtime_services_data,
+    conventional_memory,
+    unusable_memory,
+    acpi_reclaim_memory,
+    acpi_memory_nvs,
+    memory_apped_io,
+    memory_mapped_io_port_space,
+    pal_code,
+    persistent_memory,
+    max_memory_type
+};
+
 struct efi_boot_services;
 typedef struct efi_boot_services
 {
@@ -26,7 +46,7 @@ typedef struct efi_boot_services
     efi_status (*raise_tpl)(u64 new_tpl);
     efi_status (*restore_tpl)(u64 old_tpl);
 
-    efi_status (*allocate_pages)(efi_allocate_type alloc_type, size_t mem_type, size_t pages, void** memory);
+    efi_status (*allocate_pages)(efi_allocate_type alloc_type, efi_memory_type mem_type, size_t pages, void** memory);
     efi_status (*free_pages)(void* memory, size_t pages);
 
     efi_status (*get_memory_map)(size_t* memory_map_size, void* not_yet_implemented);

@@ -6,3 +6,6 @@ void efi_gfx_blit(const unsigned char* image_data, size_t image_width, size_t wi
 void efi_gfx_char(size_t x, size_t y, char character);
 void efi_gfx_string(size_t x, size_t y, char* string);
 void efi_gfx_string(size_t x, size_t y, const char* string);
+
+void efi_gfx_get_res(size_t* width, size_t* height);
+void efi_gfx_get_char_size(size_t* width, size_t* height);

@@ -4,6 +4,9 @@
 
 #define ESTR(x) const_cast<wchar_t*>(L"" x)
 
+#define PAGE_SIZE 4096
+#define NUM_PAGES(y) ((y + PAGE_SIZE - 1) / PAGE_SIZE)
+
 typedef void* efi_handle;
 typedef void* efi_event;
 typedef wchar_t efi_char16;

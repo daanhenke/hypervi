@@ -18,7 +18,7 @@ $(DIR_ASSETS_OUT)/bitmapfont.png: $(DIR_ASSETS_OUT)/font.bdf
 	$(call log,assets,Creating png $(notdir $@))
 	$(call ensure_dir)
 	@$(DIR_TOOLS)/bdf2png.py $< $@
-	@convert $@ -alpha off -negate -threshold 50% $@
+	@convert $@ -negate -transparent black -threshold 50% $@
 
 $(DIR_ASSETS_OUT)/bitmapfont.bin: $(DIR_ASSETS_OUT)/bitmapfont.png
 	$(call log,assets,Creating bin $(notdir $@))
