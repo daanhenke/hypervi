@@ -1,5 +1,6 @@
 #include "loader/efi/console.h"
 #include "loader/efi/gfx.h"
+#include "freestanding/libc.h"
 #include "logo.png.h"
 
 efi_console_ctx ctx;
@@ -22,6 +23,9 @@ void efi_console_init()
 
     ctx.buffer_size = ctx.rows * ctx.columns * sizeof(char) * 2;
     gST->boot_services->allocate_pages(efi_allocate_type::allocate_any_pages, efi_memory_type::boot_services_data, NUM_PAGES(ctx.buffer_size), reinterpret_cast<void**>(&ctx.buffer));
+
+    _stosb(ctx.buffer, 0, ctx.buffer_size);
+    //efi_console_fill('\0', 0);
 }
 
 void efi_console_setcell(size_t x, size_t y, char character, char attribute)
@@ -55,7 +59,9 @@ void efi_console_draw()
         }
     }
 
-    efi_gfx_blit(logo_image_data, logo_image_width, logo_image_width, logo_image_height, 1920 - logo_image_width, 1080 - logo_image_height, 0, 0);
+    static bool test = false;
+    if (! test) efi_gfx_blit(logo_image_data, logo_image_width, logo_image_width, logo_image_height, 1920 - logo_image_width, 1080 - logo_image_height, 0, 0);
+    test = true;
 }
 
 void efi_console_write(char* message)
@@ -85,4 +91,16 @@ void efi_console_write(char* message)
     }
 
     efi_console_draw();
+}
+
+void efi_console_write(const char* message)
+{
+    efi_console_write(const_cast<char*>(message));
+}
+
+void efi_console_hex(size_t number)
+{
+    char buff[17];
+    itoa(number, buff, 16, 1, 0);
+    efi_console_write(buff);
 }

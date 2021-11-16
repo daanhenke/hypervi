@@ -15,7 +15,7 @@ void efi_fs_init()
         return;
     }
 
-    log("Listing filesystems...\r\n");
+    log("Listing filesystems...\n");
     for (size_t i = 0; i < fs_root_count && i < 0x10; i++)
     {
         efi_sfsp* sfsp;
@@ -31,7 +31,28 @@ void efi_fs_init()
         u64 buffer_size = sizeof(label);
         fs_roots[i]->get_info(fs_roots[i], const_cast<efi_guid*>(&fs_label_guid), &buffer_size, &label);
 
-        gST->con_out->output_string(gST->con_out, label.volume_label);
-        log("\r\n");
+        char label_c[512];
+        efi_string_to_cstring(label.volume_label, label_c);
+
+        log("found drive: ");
+        log(label_c);
+        log("\n");
     }
+}
+
+efi_fp* efi_fs_find_file(efi_char16* path, u64 open_mode, u64 attributes)
+{
+    efi_fp* output = nullptr;
+
+    for (size_t i = 0; i < fs_root_count; i++)
+    {
+        auto status = fs_roots[i]->open(fs_roots[i], &output, path, open_mode, attributes);
+
+        if (status == efi_status::success)
+        {
+            break;
+        }
+    }
+
+    return output;
 }

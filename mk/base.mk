@@ -16,3 +16,7 @@ FREESTANDING_CFLAGS := \
 	-fno-stack-protector \
 	-fshort-wchar \
 	-mno-red-zone
+
+FREESTANDING_CXXFLAGS := \
+	$(FREESTANDING_CFLAGS) \
+	-fno-exceptions

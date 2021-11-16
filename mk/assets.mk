@@ -10,7 +10,7 @@ ALL_ASSETS := $(addprefix $(DIR_ASSETS_OUT)/,$(ALL_ASSETS))
 assets: $(ALL_ASSETS)
 $(eval $(call add_targets,assets))
 
-$(DIR_ASSETS_OUT)/font.bdf: $(DIR_ASSETS_IN)/fonts/ibm18.bdf
+$(DIR_ASSETS_OUT)/font.bdf: $(DIR_ASSETS_IN)/fonts/boxxy.bdf
 	$(call ensure_dir)
 	@cp $< $@
 

@@ -21,3 +21,5 @@ void efi_console_init();
 void efi_console_fill(char character, char attribute);
 void efi_console_draw();
 void efi_console_write(char* message);
+void efi_console_write(const char* message);
+void efi_console_hex(size_t number);

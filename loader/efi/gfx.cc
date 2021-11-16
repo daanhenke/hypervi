@@ -12,6 +12,8 @@ void efi_gfx_blit(const unsigned char* image_data, size_t image_width, size_t wi
 
 void efi_gfx_char(size_t x, size_t y, char character)
 {
+    if (character == '\0') return;
+
     size_t char_width = bitmapfont_image_width / 32;
     size_t char_height = bitmapfont_image_height / 8;
     size_t char_x = character % 32;

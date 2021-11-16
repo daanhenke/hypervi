@@ -1,17 +1,11 @@
 #pragma once
 
 #include "freestanding/efi.h"
+#include "loader/efi/console.h"
 
 extern efi_system_table* gST;
 
-#define log(str) gST->con_out->output_string(gST->con_out, ESTR(str))
+#define log(str) efi_console_write(str)
 
-// void* operator new(size_t size)
-// {
+void efi_string_to_cstring(efi_char16* source, char* dest);
 
-// }
-
-// void operator delete(void* instance)
-// {
-
-// }
