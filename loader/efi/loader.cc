@@ -1,6 +1,5 @@
 #include "loader/efi/loader.h"
-#include "freestanding/elf.h"
-#include "freestanding/libc.h"
+#include "freestanding/elf_mapper.h"
 
 const efi_guid file_info_guid = efi_file_info_guid;
 
@@ -42,51 +41,19 @@ void efi_loader_init()
 
 void efi_loader_map()
 {
-    auto elf_src = reinterpret_cast<elf64_ehdr*>(visor_real);
-    auto shdrs_src = reinterpret_cast<elf64_shdr*>(visor_real + elf_src->e_shoff);
-    auto phdrs_src = reinterpret_cast<elf64_phdr*>(visor_real + elf_src->e_phoff);
-
-    size_t elf_sections_size = 0;
-    for (size_t i = 0; i < elf_src->e_phnum; i++)
-    {
-        auto off = phdrs_src[i].p_vaddr + phdrs_src[i].p_memsz;
-        if (off > elf_sections_size) elf_sections_size = off;
-    }
-
-    log("elf size: ");
-    efi_console_hex(elf_sections_size);
-    log("\n");
+    elf_mapper mapper(visor_real);
 
     // Using uefi allocate to make this memory runtime moemory instead of boottime
-    gST->boot_services->allocate_pages(efi_allocate_type::allocate_any_pages, efi_memory_type::runtime_services_code, NUM_PAGES(elf_sections_size), reinterpret_cast<void**>(&visor_mapped));
+    gST->boot_services->allocate_pages(
+        efi_allocate_type::allocate_any_pages,
+        efi_memory_type::runtime_services_code,
+        NUM_PAGES(mapper.get_mapped_size()),
+        reinterpret_cast<void**>(&visor_mapped)
+    );
 
-    log("elf base: ");
-    efi_console_hex(reinterpret_cast<size_t>(visor_mapped));
-    log("\n");
+    mapper.map_to(visor_mapped);
+    hypervisor_main = mapper.get_entrypoint<decltype(hypervisor_main)>();
 
-    for (size_t i = 0; i < elf_src->e_phnum; i++)
-    {
-        auto section = phdrs_src[i];
-        auto off = visor_mapped + section.p_vaddr;
-
-        _movsb(off, visor_real + section.p_offset, section.p_filesz);
-        log("copied sector ");
-        efi_console_hex(i);
-        log("\n");
-    }
-
-    auto string_section = shdrs_src[elf_src->e_shstrndx];
-    for (size_t i = 0; i < elf_src->e_shnum; i++)
-    {
-        auto section = shdrs_src[i];
-        auto name = reinterpret_cast<char*>(visor_real + string_section.sh_offset + section.sh_name);
-
-        log("found section: ");
-        log(name);
-        log("\n");
-    }
-
-    hypervisor_main = reinterpret_cast<decltype(hypervisor_main)>(visor_mapped + reinterpret_cast<u64>(elf_src->e_entry));
     log("calling hv: ");
     efi_console_hex(hypervisor_main());
     log("\n");

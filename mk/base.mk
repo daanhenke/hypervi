@@ -20,3 +20,9 @@ FREESTANDING_CFLAGS := \
 FREESTANDING_CXXFLAGS := \
 	$(FREESTANDING_CFLAGS) \
 	-fno-exceptions
+
+FREESTANDING_SOURCES := \
+	freestanding/elf_mapper.cc \
+	freestanding/libc/itoa.cc \
+	freestanding/libc/memfuncs.S \
+	freestanding/libc/memfuncs.cc

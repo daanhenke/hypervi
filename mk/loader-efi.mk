@@ -23,9 +23,7 @@ EFI_TGT=$(DIR_DIST)/loader-efi.efi
 $(eval $(call add_targets,$(EFI_TGT)))
 
 EFI_SOURCES := \
-	freestanding/libc/itoa.cc \
-	freestanding/libc/memfuncs.S \
-	freestanding/libc/memfuncs.cc \
+	$(FREESTANDING_SOURCES) \
 	loader/efi/main.cc \
 	loader/efi/gfx.cc \
 	loader/efi/fs.cc \
