@@ -5,9 +5,10 @@ include ./mk/macros.mk
 include ./mk/base.mk
 
 MK_MODULES := \
-	hypervisor \
 	assets \
+	loader-stub \
 	loader-efi \
+	hypervisor \
 	iso \
 	qemu
 

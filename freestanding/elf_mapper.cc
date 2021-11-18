@@ -41,3 +41,29 @@ void elf_mapper::map_to(void* target_mem)
         auto name = reinterpret_cast<char*>(m_file + string_section.sh_offset + section.sh_name);
     }
 }
+
+char* elf_mapper::get_string(size_t offset)
+{
+    auto string_section = m_shdrs[m_ehdr->e_shstrndx];
+    return reinterpret_cast<char*>(m_file + string_section.sh_offset + offset);
+}
+
+#include "loader/efi/common.h"
+char* elf_mapper::get_section_by_name(const char* target_name)
+{
+    for (size_t i = 0; i < m_ehdr->e_shnum; i++)
+    {
+        auto section = m_shdrs[i];
+        auto name = get_string(section.sh_name);
+
+        log(name);
+        log("\n");
+
+        if (strcmp(name, target_name) == 0)
+        {
+            return m_file + section.sh_offset;
+        }
+    }
+
+    return nullptr;
+}

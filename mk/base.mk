@@ -25,4 +25,5 @@ FREESTANDING_SOURCES := \
 	freestanding/elf_mapper.cc \
 	freestanding/libc/itoa.cc \
 	freestanding/libc/memfuncs.S \
-	freestanding/libc/memfuncs.cc
+	freestanding/libc/memfuncs.cc \
+	freestanding/libc/string.cc

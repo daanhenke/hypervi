@@ -51,6 +51,9 @@ void efi_loader_map()
         reinterpret_cast<void**>(&visor_mapped)
     );
 
+    log("import table: ");
+    efi_console_hex(reinterpret_cast<size_t>(mapper.get_section_by_name(".got.plt")));
+
     mapper.map_to(visor_mapped);
     hypervisor_main = mapper.get_entrypoint<decltype(hypervisor_main)>();
 

@@ -17,6 +17,10 @@ public:
         return reinterpret_cast<T>(m_mapped + reinterpret_cast<size_t>(m_ehdr->e_entry));
     }
 
+    char* get_string(size_t offset);
+    char* get_section_by_name(const char* name);
+    void iterate_imports(void (*callback_func)(char* name));
+
 protected:
     char* m_file;
     elf64_ehdr* m_ehdr;
