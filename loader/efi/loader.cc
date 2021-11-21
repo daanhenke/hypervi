@@ -39,9 +39,19 @@ void efi_loader_init()
     }
 }
 
+void __attribute__((sysv_abi)) imp_log(char* msg)
+{
+    log(msg);
+}
+
+elf_import efi_loader_imports[] =
+{
+    { "ldr_log", imp_log }
+};
+
 void efi_loader_map()
 {
-    elf_mapper mapper(visor_real);
+    elf_mapper mapper(visor_real, 1, efi_loader_imports);
 
     // Using uefi allocate to make this memory runtime moemory instead of boottime
     gST->boot_services->allocate_pages(
