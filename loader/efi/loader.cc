@@ -1,5 +1,7 @@
 #include "loader/efi/loader.h"
 #include "freestanding/elf_mapper.h"
+#include "loader/exports.h"
+#include "freestanding/libc.h"
 
 const efi_guid file_info_guid = efi_file_info_guid;
 
@@ -7,7 +9,7 @@ efi_fp* visor_file = nullptr;
 char* visor_real = nullptr;
 char* visor_mapped = nullptr;
 
-size_t (*hypervisor_main)();
+size_t (*hypervisor_main)(hv_init_struct* init);
 
 void efi_loader_init()
 {
@@ -49,6 +51,8 @@ elf_import efi_loader_imports[] =
     { "ldr_log", imp_log }
 };
 
+const char* loader_name = "efi_ldr";
+
 void efi_loader_map()
 {
     elf_mapper mapper(visor_real, 1, efi_loader_imports);
@@ -61,13 +65,17 @@ void efi_loader_map()
         reinterpret_cast<void**>(&visor_mapped)
     );
 
-    log("import table: ");
-    efi_console_hex(reinterpret_cast<size_t>(mapper.get_section_by_name(".got.plt")));
-
     mapper.map_to(visor_mapped);
     hypervisor_main = mapper.get_entrypoint<decltype(hypervisor_main)>();
 
-    log("calling hv: ");
-    efi_console_hex(hypervisor_main());
+    hv_init_struct init_struct;
+    memcpy(init_struct.loader_name, loader_name, strlen(loader_name));
+    init_struct.loader_version = 0x1;
+
+    log("calling hv!\n");
+    auto result = hypervisor_main(&init_struct);
+
+    log("result: ");
+    efi_console_hex(result);
     log("\n");
 }

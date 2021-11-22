@@ -17,15 +17,11 @@ efi_status efi_main(efi_handle module_handle, efi_system_table* st)
 
     efi_allocator_init();
     efi_fs_init();
+
     efi_loader_init();
-
-    log("Hello World\n\tEng\n\tOwO");
-    log("\n\n\n\n\t\t---very cool---\n");
-    efi_console_hex(0x1337042012345678);
-    log("\n");
-
     efi_loader_map();
 
+    log("loader executed succesfully, press any key to continue...\n");
     efi_input_wait_for_key();
 
     return efi_status::success;

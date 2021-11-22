@@ -25,7 +25,6 @@ size_t elf_mapper::get_mapped_size()
     return result;
 }
 
-#include "loader/efi/common.h"
 void elf_mapper::map_to(void* target_mem)
 {
     m_mapped = reinterpret_cast<char*>(target_mem);
@@ -51,7 +50,6 @@ void elf_mapper::map_to(void* target_mem)
         if (strcmp(name, ".dynstr") != 0) continue;
 
         dynstr_section = &section;
-        log("found dynstr\n");
         break;
     }
 
@@ -82,27 +80,26 @@ void elf_mapper::map_to(void* target_mem)
         dynsym_count = section.sh_size / sizeof(elf64_sym);
         dynsyms = reinterpret_cast<elf64_sym*>(m_file + section.sh_offset);
 
-        log("found dynsym\n");
         break;
     }
 
     // Log symbols
-    for (size_t i = 0; i < symbol_count; i++)
-    {
-        log("found symbol: ");
-        auto text = m_file + string_section.sh_offset + symbols[i].st_name;
-        log(text);
-        log("\n");
-    }
+    // for (size_t i = 0; i < symbol_count; i++)
+    // {
+    //     log("found symbol: ");
+    //     auto text = m_file + string_section.sh_offset + symbols[i].st_name;
+    //     log(text);
+    //     log("\n");
+    // }
 
 
-    for (size_t i = 0; i < dynsym_count; i++)
-    {
-        log("found dynsym: ");
-        auto text = m_file + dynstr_section->sh_offset + dynsyms[i].st_name;
-        log(text);
-        log("\n");
-    }
+    // for (size_t i = 0; i < dynsym_count; i++)
+    // {
+    //     log("found dynsym: ");
+    //     auto text = m_file + dynstr_section->sh_offset + dynsyms[i].st_name;
+    //     log(text);
+    //     log("\n");
+    // }
 
     // Relocations
     for (size_t i = 0; i < m_ehdr->e_shnum; i++)
@@ -111,7 +108,6 @@ void elf_mapper::map_to(void* target_mem)
 
         if (section.sh_type == elf_section_type::rela)
         {
-            log("relocations found\n");
             auto reloc_count = section.sh_size / sizeof(elf64_rela);
             auto relocs = reinterpret_cast<elf64_rela*>(m_file + section.sh_offset);
 
@@ -124,22 +120,13 @@ void elf_mapper::map_to(void* target_mem)
                 auto reloc_name = m_file + dynstr_section->sh_offset + dynsyms[sym].st_name;
                 size_t* reloc_ptr = nullptr;
 
-                log(reloc_name);
-                log("\n");
-
                 switch (type)
                 {
                 case elf64_r_type::x86_64_junp_slot:
-                    log("jmp reloc\n");
                     break;
 
                 case elf64_r_type::x86_64_glob_dat:
-                    log("glob reloc ");
-                    efi_console_hex(dynsyms[sym].st_value);
-                    log("\n");
                     reloc_ptr = reinterpret_cast<size_t*>(m_mapped + relocs[reli].r_offset);
-                    efi_console_hex(reinterpret_cast<size_t>(resolve_import(reloc_name)));
-                    log("\n");
                     *reloc_ptr = reinterpret_cast<size_t>(resolve_import(reloc_name));
                     break;
 
