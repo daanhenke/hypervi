@@ -16,3 +16,4 @@ void efi_deallocate(void* address);
 void* operator new(size_t size);
 void* operator new[](size_t size);
 void operator delete(void* instance);
+void operator delete[](void* instance);

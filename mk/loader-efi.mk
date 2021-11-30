@@ -29,6 +29,7 @@ EFI_SOURCES := \
 	loader/efi/fs.cc \
 	loader/efi/input.cc \
 	loader/efi/console.cc \
+	loader/efi/mp.cc \
 	loader/efi/string_utils.cc \
 	loader/efi/allocator.cc \
 	loader/efi/loader.cc \

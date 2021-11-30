@@ -61,5 +61,5 @@ typedef struct efi_boot_services
     u64 padding3[18];
 
     efi_status (*locate_handle_buffer)(efi_locate_search_type search_type, efi_guid* protocol, void* search_key, size_t* handle_count, efi_handle** buffer);
-
+    efi_status (*locate_protocol)(efi_guid* guid, void* registration, void** interface);
 } efi_boot_services;

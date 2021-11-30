@@ -1,6 +1,7 @@
 #include "loader/efi/common.h"
 #include "loader/efi/idt.h"
 #include "freestanding/x86utils.h"
+#include "freestanding/libc.h"
 
 typedef struct do_packed {
 	u16 isr_low;
@@ -12,58 +13,67 @@ typedef struct do_packed {
 	u32 reserved;
 } idt_entry_t;
 
-#define idt_size 256
-
-typedef struct do_packed
+typedef struct
 {
-    idt_entry_t entries[idt_size];
-} idt_t;
+    u8 index;
+    void* handler;
+} idt_hook_t;
 
-static idt_t idt = {};
+static idt_hook_t hooks[] =
+{
+    { 0x6, __idt_stub_efi_idt_invalid_opcode },
+    { 0xE, __idt_stub_efi_idt_pagefault }
+};
+static const size_t hook_count = sizeof(hooks) / sizeof(idt_hook_t);
 
-extern "C" u64 interrupt_vector[idt_size];
-
-static segment_descriptor_register_64 original_idtr = {};
+static segment_descriptor_register_64 efi_idtr = {};
+static idt_entry_t* custom_idt;
+static segment_descriptor_register_64 custom_idtr = {};
 
 void efi_idt_init()
 {
-    log("initializing idt\n");
+    log("initializing idt hooks\n");
 
-    segment_descriptor_register_64 idtr;
-    original_idtr.base_address = 0;
-    read_idtr(&original_idtr);
+    read_idtr(&efi_idtr);
+    read_idtr(&custom_idtr);
 
-    log_hex("current idt base: ", original_idtr.base_address);
+    size_t entries = efi_idtr.limit / sizeof(idt_entry_t);
+    log_hex("idt size: ", entries);
 
-    for (size_t i = 0; i < idt_size; i++)
+    custom_idt = new idt_entry_t[entries];
+    memcpy(custom_idt, reinterpret_cast<const void*>(efi_idtr.base_address), efi_idtr.limit);
+
+    log("hooking interesting entries\n");
+    for (size_t i = 0; i < hook_count; i++)
     {
-        size_t idt_handler = interrupt_vector[i];
-        idt.entries[i].isr_low = static_cast<u16>(idt_handler);
-        idt.entries[i].kernel_cs = 0x38;
-        idt.entries[i].ist = 0;
-        idt.entries[i].reserved = 0;
-        idt.entries[i].attributes = 0x8E;
-        idt.entries[i].isr_mid = static_cast<u16>(idt_handler >> 16);
-        idt.entries[i].isr_high = static_cast<u32>(idt_handler >> 32);
+        auto hook = hooks[i];
+        auto entry = &custom_idt[hook.index];
+        auto ptr = reinterpret_cast<u64>(hook.handler);
+        entry->isr_low = static_cast<u16>(ptr);
+        entry->isr_mid = static_cast<u16>(ptr >> 16);
+        entry->isr_high = static_cast<u32>(ptr >> 32);
     }
 
-    idtr.base_address = reinterpret_cast<u64>(&idt);
-    idtr.limit = sizeof(idt) - 1;
-
-    log_hex("setting idtr to ", idtr.base_address);
-    write_idtr(&idtr);
-    log("custom interrupt handler active!\n");
+    log("overwriting idtr\n");
+    custom_idtr.base_address = reinterpret_cast<u64>(custom_idt);
+    write_idtr(&custom_idtr);
 }
 
 void efi_idt_exit()
 {
-    log_hex("setting back old idt @ ", original_idtr.base_address);
-    write_idtr(&original_idtr);
-    log("disabled idt!\n");
+    write_idtr(&efi_idtr);
+    delete[] custom_idt;
 }
 
-u64 efi_idt_common(u64 rsp)
+u64 efi_idt_pagefault(idt_ctx* ctx)
 {
-    log_hex("idt called, rsp: ", rsp);
-    return rsp;
+    auto fucked_addr = read_cr2();
+    log("\n\n\noh no, page fault :((((((((((((((((((((((((((((\n");
+    log_hex("naughty ptr: ", reinterpret_cast<u64>(fucked_addr));
+}
+
+u64 efi_idt_invalid_opcode(idt_ctx* ctx)
+{
+    log("\n\n\noh no, invalid instruction :((((((((((((((((((((((((((((\n");
+    log_hex("naughty rip: ", reinterpret_cast<u64>(ctx->rip));
 }

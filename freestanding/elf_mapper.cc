@@ -25,6 +25,7 @@ size_t elf_mapper::get_mapped_size()
     return result;
 }
 
+#include "loader/efi/common.h"
 void elf_mapper::map_to(void* target_mem)
 {
     m_mapped = reinterpret_cast<char*>(target_mem);
@@ -123,16 +124,19 @@ void elf_mapper::map_to(void* target_mem)
                 switch (type)
                 {
                 case elf64_r_type::x86_64_junp_slot:
-                    break;
-
                 case elf64_r_type::x86_64_glob_dat:
                     reloc_ptr = reinterpret_cast<size_t*>(m_mapped + relocs[reli].r_offset);
                     *reloc_ptr = reinterpret_cast<size_t>(resolve_import(reloc_name));
                     break;
 
                 default:
+                    log("invalid reloc\n");
                     break;
                 }
+
+                // log("relocated sym '");
+                // log(reloc_name);
+                // log_hex("' to ", *reloc_ptr);
             }
         }
     }
@@ -143,6 +147,9 @@ void* elf_mapper::resolve_import(const char* name)
 {
     for (size_t i = 0; i < m_import_count; i++)
     {
+        // log("trying import: ");
+        // log(m_imports[i].name);
+        // log("\n");
         if (strcmp(m_imports[i].name, name) == 0) return m_imports[i].address;
     }
 

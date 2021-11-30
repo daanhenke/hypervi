@@ -5,3 +5,4 @@
 #include "freestanding/efi/boot_services.h"
 #include "freestanding/efi/system_table.h"
 #include "freestanding/efi/gop.h"
+#include "freestanding/efi/mp.h"

@@ -1,4 +1,5 @@
 #include "loader/efi/loader.h"
+#include "loader/efi/mp.h"
 #include "freestanding/elf_mapper.h"
 #include "loader/exports.h"
 #include "freestanding/libc.h"
@@ -29,10 +30,6 @@ void efi_loader_init()
         return;
     }
 
-    log("visor file size: ");
-    efi_console_hex(visor_info.file_size);
-    log("\n");
-
     visor_real = new char[visor_info.file_size];
     if (visor_file->read(visor_file, &visor_info.file_size, visor_real) != efi_status::success)
     {
@@ -46,16 +43,23 @@ void __attribute__((sysv_abi)) imp_log(char* msg)
     log(msg);
 }
 
+
+void __attribute__((sysv_abi)) imp_call_on_all_cores(ldr_coac_cb function)
+{
+    efi_mp_call_on_all_cores(function);
+}
+
 elf_import efi_loader_imports[] =
 {
-    { "ldr_log", imp_log }
+    { "ldr_log", imp_log },
+    { "ldr_call_on_all_cores", imp_call_on_all_cores }
 };
 
 const char* loader_name = "efi_ldr";
 
 void efi_loader_map()
 {
-    elf_mapper mapper(visor_real, 1, efi_loader_imports);
+    elf_mapper mapper(visor_real, sizeof(efi_loader_imports) / sizeof(elf_import), efi_loader_imports);
 
     // Using uefi allocate to make this memory runtime moemory instead of boottime
     gST->boot_services->allocate_pages(
@@ -68,11 +72,12 @@ void efi_loader_map()
     mapper.map_to(visor_mapped);
     hypervisor_main = mapper.get_entrypoint<decltype(hypervisor_main)>();
 
-    hv_init_struct init_struct;
-    memcpy(init_struct.loader_name, loader_name, strlen(loader_name));
-    init_struct.loader_version = 0x1;
+    hv_init_struct init_struct = {
+        "TEST\0",
+        0x1
+    };
 
-    log("calling hv!\n");
+    log("passing control to hypervisor binary!\n");
     auto result = hypervisor_main(&init_struct);
 
     log("result: ");

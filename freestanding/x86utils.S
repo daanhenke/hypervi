@@ -1,6 +1,17 @@
 bits 64
 section .text
 
+global read_cr2
+read_cr2:
+    mov rax, cr2
+    ret
+
+global write_cr2
+write_cr2:
+    mov cr2, rdi
+    ret
+
+
 global read_cr3
 read_cr3:
     mov rax, cr3

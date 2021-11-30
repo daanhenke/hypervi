@@ -30,7 +30,7 @@ void* efi_allocate(size_t size)
         if (entry->address != nullptr) continue;
 
         gST->boot_services->allocate_pages(efi_allocate_type::allocate_any_pages, efi_memory_type::boot_services_data, pages, &(entry->address));
-        entry->pages = size;
+        entry->pages = pages;
         return entry->address;
     }
 
@@ -63,6 +63,12 @@ void* operator new[](size_t size)
 }
 
 void operator delete(void* instance)
+{
+    efi_deallocate(instance);
+}
+
+
+void operator delete[](void* instance)
 {
     efi_deallocate(instance);
 }

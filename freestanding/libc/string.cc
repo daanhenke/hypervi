@@ -18,6 +18,6 @@ int strcmp(const char* a, const char* b)
 size_t strlen(const char* str)
 {
     auto orig_ptr = str;
-    while(*str++ != '\0');
+    while(*(str++) != '\0');
     return str - orig_ptr;
 }
