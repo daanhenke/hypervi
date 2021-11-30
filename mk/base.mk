@@ -26,4 +26,6 @@ FREESTANDING_SOURCES := \
 	freestanding/libc/itoa.cc \
 	freestanding/libc/memfuncs.S \
 	freestanding/libc/memfuncs.cc \
-	freestanding/libc/string.cc
+	freestanding/libc/string.cc \
+	freestanding/x86utils.cc \
+	freestanding/x86utils.S
