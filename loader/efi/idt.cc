@@ -1,4 +1,3 @@
-#include "loader/efi/common.h"
 #include "loader/efi/idt.h"
 #include "freestanding/x86utils.h"
 #include "freestanding/libc.h"
@@ -22,6 +21,7 @@ typedef struct
 static idt_hook_t hooks[] =
 {
     { 0x6, __idt_stub_efi_idt_invalid_opcode },
+    { 0xD, __idt_stub_efi_idt_general_protection_fault },
     { 0xE, __idt_stub_efi_idt_pagefault }
 };
 static const size_t hook_count = sizeof(hooks) / sizeof(idt_hook_t);
@@ -52,6 +52,8 @@ void efi_idt_init()
         entry->isr_low = static_cast<u16>(ptr);
         entry->isr_mid = static_cast<u16>(ptr >> 16);
         entry->isr_high = static_cast<u32>(ptr >> 32);
+
+        log_hex("kernel cs: ", entry->kernel_cs);
     }
 
     log("overwriting idtr\n");
@@ -76,4 +78,11 @@ u64 efi_idt_invalid_opcode(idt_ctx* ctx)
 {
     log("\n\n\noh no, invalid instruction :((((((((((((((((((((((((((((\n");
     log_hex("naughty rip: ", reinterpret_cast<u64>(ctx->rip));
+}
+
+
+u64 efi_idt_general_protection_fault(idt_ctx* ctx)
+{
+    log("\n\n\noh no, general protection fault :((((((((((((((((((((((((((((\n");
+    log_hex("naughty error: ", reinterpret_cast<u64>(ctx->error_code));
 }

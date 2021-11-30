@@ -12,8 +12,8 @@ typedef struct
 struct efi_stip;
 typedef struct efi_stip
 {
-    efi_status (*reset)(efi_stop* thiz, bool extended_verification);
-    efi_status (*read_key_stroke)(efi_stop* thiz, efi_stip_key* key);
+    efi_status (*reset)(efi_stip* thiz, bool extended_verification);
+    efi_status (*read_key_stroke)(efi_stip* thiz, efi_stip_key* key);
 
     efi_event wait_for_key;
 } efi_stip;

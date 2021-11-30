@@ -23,6 +23,21 @@ write_cr3:
     ret
 
 
+global read_msr
+read_msr:
+    push rbp
+    mov rbp, rsp
+
+    mov rcx, rdi
+    rdmsr
+
+    shl rdx, 32
+    or rax, rdx
+
+    leave
+    ret
+
+
 global read_gdtr
 read_gdtr:
     sgdt [rdi]
@@ -44,4 +59,45 @@ write_idtr:
     cli
     lidt [rdi]
     sti
+    ret
+
+global read_tr
+read_tr:
+    str ax
+    ret
+
+global write_tr
+write_tr:
+    ltr di
+    ret
+
+global clear_tr
+clear_tr:
+    clts
+    ret
+
+global call_cpuid
+call_cpuid:
+    push rbx
+
+    mov eax, [rdi]
+    mov ecx, [rdi + 8]
+
+    cpuid
+
+    mov [rdi], eax
+    mov [rdi + 4], ebx
+    mov [rdi + 8], ecx
+    mov [rdi + 12], edx
+
+    pop rbx
+    ret
+
+global set_cs
+set_cs:
+    mov rax, qword .done
+    push rdi
+    push rax
+    o64 retf
+.done:
     ret

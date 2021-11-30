@@ -10,6 +10,13 @@ void efi_mp_init()
     gST->boot_services->locate_protocol(&mp_guid, nullptr, reinterpret_cast<void**>(&mp));
 }
 
+size_t efi_mp_whoami()
+{
+    size_t result;
+    mp->whoami(mp, &result);
+    return result;
+}
+
 size_t efi_mp_get_core_count()
 {
     size_t result, unused;

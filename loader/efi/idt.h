@@ -37,3 +37,4 @@ void efi_idt_exit();
 
 def_hook(efi_idt_pagefault);
 def_hook(efi_idt_invalid_opcode);
+def_hook(efi_idt_general_protection_fault);

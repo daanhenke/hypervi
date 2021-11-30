@@ -130,7 +130,7 @@ void elf_mapper::map_to(void* target_mem)
                     break;
 
                 default:
-                    log("invalid reloc\n");
+                    //log("invalid reloc\n");
                     break;
                 }
 
@@ -170,8 +170,8 @@ char* elf_mapper::get_section_by_name(const char* target_name)
         auto section = m_shdrs[i];
         auto name = get_string(section.sh_name);
 
-        log(name);
-        log("\n");
+        //log(name);
+        //log("\n");
 
         if (strcmp(name, target_name) == 0)
         {

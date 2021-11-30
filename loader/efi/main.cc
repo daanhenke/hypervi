@@ -7,6 +7,7 @@
 #include "loader/efi/allocator.h"
 #include "loader/efi/idt.h"
 #include "loader/efi/mp.h"
+#include "loader/efi/gdt.h"
 
 efi_system_table* gST;
 
@@ -22,16 +23,19 @@ efi_status efi_main(efi_handle module_handle, efi_system_table* st)
     efi_allocator_init();
     efi_fs_init();
 
+    efi_gdt_init();
     efi_idt_init();
 
     efi_loader_init();
     efi_loader_map();
 
     efi_idt_exit();
+    efi_gdt_exit();
 
     log("loader executed succesfully, press any key to continue...\n");
 
     efi_input_wait_for_key();
+    log("yep");
 
     return efi_status::success;
 }

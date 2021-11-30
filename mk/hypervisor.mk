@@ -19,6 +19,7 @@ HYPERVISOR_TGT=$(DIR_DIST)/violet.elf
 $(eval $(call add_targets,hypervisor))
 
 HYPERVISOR_SOURCES := \
+	$(FREESTANDING_SOURCES) \
 	hypervisor/main.cc
 $(eval $(call convert_sources,HYPERVISOR))
 

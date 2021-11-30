@@ -36,7 +36,8 @@ EFI_SOURCES := \
 	loader/efi/paging.cc \
 	loader/efi/gdt.cc \
 	loader/efi/idt.cc \
-	loader/efi/idt.S
+	loader/efi/idt.S \
+	loader/efi/gdt.cc
 $(eval $(call convert_sources,EFI))
 
 $(DIR_OBJ)/$(current_target_name)/%.cc.o: $(DIR_SOURCE)/%.cc $(DIR_ASSETS_OUT)/bitmapfont.png.h
