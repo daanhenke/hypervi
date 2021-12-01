@@ -6,8 +6,8 @@ cpu_state g_cpu_states[cpu_max];
 
 size_t cpu_alter_control_register(size_t original_value, size_t msr_id_0, size_t msr_id_1)
 {
-    size_t or_data = read_msr(msr_id_0);
-    size_t and_data = read_msr(msr_id_1);
+    u32 or_data = read_msr(msr_id_0);
+    u32 and_data = read_msr(msr_id_1);
 
     original_value &= and_data;
     original_value |= or_data;
@@ -36,6 +36,13 @@ size_t cpu_init()
     write_cr0(cpu_alter_control_register(read_cr0(), IA32_VMX_CR0_FIXED0, IA32_VMX_CR0_FIXED1));
     write_cr4(cpu_alter_control_register(read_cr4(), IA32_VMX_CR4_FIXED0, IA32_VMX_CR4_FIXED1));
 
+    cpuid_t regs;
+    regs.eax = 0x80000008U;
+    call_cpuid(&regs);
+
+    auto phys_size = static_cast<u16>(regs.eax);
+    corelog_hex("physical size: ", phys_size);
+
     // Preparing the vmcs structure for VMXON
     corelog_hex("vmxon @ ", reinterpret_cast<u64>(&state->core_vmxon));
     auto vmx_basic = read_msr<ia32_vmx_basic_register>(IA32_VMX_BASIC);
@@ -46,7 +53,7 @@ size_t cpu_init()
     corelog("Enabling vmx root mode...\n");
     // Enable root mode
     auto result = call_vmxon(&state->core_vmxon);
-    if (result != 0)
+    if (result == 0)
     {
         corelog("Failed to enable root mode!!!\n");
         return 1;

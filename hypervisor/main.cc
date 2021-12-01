@@ -18,6 +18,7 @@ bool visor_is_vmx_supported()
 
     auto vmx_basic = read_msr<ia32_vmx_basic_register>(IA32_VMX_BASIC);
     auto feature_control = read_msr<ia32_feature_control_register>(IA32_FEATURE_CONTROL);
+    corelog_hex("feature control: ", feature_control.enable_vmx_inside_smx);
     if (
         vmx_basic.memory_type != MEMORY_TYPE_WRITE_BACK ||
         ! feature_control.lock_bit ||

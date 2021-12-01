@@ -105,7 +105,7 @@ call_vmxon:
     mov rax, rdi
     clc
     vmxon [rax]
-    jnc .fail
+    jnc .done
     mov rax, 0
-.fail:
+.done:
     ret

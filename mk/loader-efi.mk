@@ -33,7 +33,6 @@ EFI_SOURCES := \
 	loader/efi/string_utils.cc \
 	loader/efi/allocator.cc \
 	loader/efi/loader.cc \
-	loader/efi/paging.cc \
 	loader/efi/gdt.cc \
 	loader/efi/idt.cc \
 	loader/efi/idt.S \
