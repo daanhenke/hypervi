@@ -3,11 +3,12 @@ VISOR_LD := ld
 HYPERVISOR_CFLAGS := \
 	$(FREESTANDING_CFLAGS) \
 	-I $(DIR_ASSETS_OUT) \
-	-I $(DIR_SOURCE)/external/ia32-doc/out
+	-DVIOLET
 
 HYPERVISOR_CXXFLAGS := \
 	$(FREESTANDING_CXXFLAGS) \
-	-I $(DIR_ASSETS_OUT)
+	-I $(DIR_ASSETS_OUT) \
+	-DVIOLET
 
 HYPERVISOR_LDFLAGS := \
 	-e visor_main
@@ -20,7 +21,8 @@ $(eval $(call add_targets,hypervisor))
 
 HYPERVISOR_SOURCES := \
 	$(FREESTANDING_SOURCES) \
-	hypervisor/main.cc
+	hypervisor/main.cc \
+	hypervisor/cpu.cc
 $(eval $(call convert_sources,HYPERVISOR))
 
 $(DIR_OBJ)/$(current_target_name)/%.cc.o: $(DIR_SOURCE)/%.cc

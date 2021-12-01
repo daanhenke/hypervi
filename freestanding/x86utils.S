@@ -1,27 +1,37 @@
 bits 64
 section .text
 
-global read_cr2
-read_cr2:
-    mov rax, cr2
+%macro rw_cr 1
+global read_%1
+read_%1:
+    mov rax, %1
     ret
 
-global write_cr2
-write_cr2:
-    mov cr2, rdi
+global write_%1
+write_%1:
+    mov %1, rdi
+    ret
+%endmacro
+
+%macro rw_ir 1
+global read_%1r
+read_%1r:
+    s%1 [rdi]
     ret
 
-
-global read_cr3
-read_cr3:
-    mov rax, cr3
+global write_%1r
+write_%1r:
+    l%1 [rdi]
     ret
+%endmacro
 
-global write_cr3
-write_cr3:
-    mov cr3, rdi
-    ret
+rw_cr cr0
+rw_cr cr1
+rw_cr cr2
+rw_cr cr3
+rw_cr cr4
 
+rw_ir gdt
 
 global read_msr
 read_msr:
@@ -36,18 +46,6 @@ read_msr:
 
     leave
     ret
-
-
-global read_gdtr
-read_gdtr:
-    sgdt [rdi]
-    ret
-
-global write_gdtr
-write_gdtr:
-    lgdt [rdi]
-    ret
-
 
 global read_idtr
 read_idtr:
@@ -100,4 +98,14 @@ set_cs:
     push rax
     o64 retf
 .done:
+    ret
+
+global call_vmxon
+call_vmxon:
+    mov rax, rdi
+    clc
+    vmxon [rax]
+    jnc .fail
+    mov rax, 0
+.fail:
     ret

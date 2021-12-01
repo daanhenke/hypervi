@@ -12,3 +12,6 @@ typedef signed long long s64;
 
 typedef u64 size_t;
 typedef s64 ssize_t;
+
+#define do_align(x) __attribute__((aligned(x)))
+#define do_packed __attribute__((packed))

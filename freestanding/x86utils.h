@@ -7,11 +7,20 @@
 
 u64 pt_to_address(u32 pml4, u32 pdpt, u32 pd, u32 pt);
 
-asmapi segment_descriptor_register_64* read_cr2();
-asmapi void write_cr2(segment_descriptor_register_64* new_cr2);
+asmapi size_t read_cr0();
+asmapi void write_cr0(size_t new_cr0);
 
-asmapi segment_descriptor_register_64* read_cr3();
-asmapi void write_cr3(segment_descriptor_register_64* new_cr3);
+asmapi size_t read_cr1();
+asmapi void write_cr1(size_t new_cr1);
+
+asmapi size_t read_cr2();
+asmapi void write_cr2(size_t new_cr2);
+
+asmapi size_t read_cr3();
+asmapi void write_cr3(size_t new_cr3);
+
+asmapi size_t read_cr4();
+asmapi void write_cr4(size_t new_cr4);
 
 asmapi size_t read_msr(u32 msr_id);
 
@@ -64,3 +73,5 @@ typedef union
 } cpuid_t;
 
 asmapi void call_cpuid(cpuid_t* regs);
+
+asmapi size_t call_vmxon(void* vmcs);

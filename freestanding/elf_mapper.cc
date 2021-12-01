@@ -25,7 +25,12 @@ size_t elf_mapper::get_mapped_size()
     return result;
 }
 
+#ifndef VIOLET
 #include "loader/efi/common.h"
+#else
+#define log(x)
+#define log_hex(x, y)
+#endif
 void elf_mapper::map_to(void* target_mem)
 {
     m_mapped = reinterpret_cast<char*>(target_mem);
@@ -130,13 +135,13 @@ void elf_mapper::map_to(void* target_mem)
                     break;
 
                 default:
-                    //log("invalid reloc\n");
+                    log("invalid reloc\n");
                     break;
                 }
 
-                // log("relocated sym '");
-                // log(reloc_name);
-                // log_hex("' to ", *reloc_ptr);
+                log("relocated sym '");
+                log(reloc_name);
+                log_hex("' to ", *reloc_ptr);
             }
         }
     }
@@ -162,7 +167,6 @@ char* elf_mapper::get_string(size_t offset)
     return reinterpret_cast<char*>(m_file + string_section.sh_offset + offset);
 }
 
-#include "loader/efi/common.h"
 char* elf_mapper::get_section_by_name(const char* target_name)
 {
     for (size_t i = 0; i < m_ehdr->e_shnum; i++)

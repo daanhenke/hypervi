@@ -1,10 +1,7 @@
 #include "freestanding/types.h"
 #include "freestanding/x86utils.h"
-#include "loader/exports.h"
-
-#define corelog_prefix ldr_log("[core "); ldr_log_hex(ldr_core_whoami()); ldr_log("]: ")
-#define corelog(msg) corelog_prefix; ldr_log(msg);
-#define corelog_hex(msg, value) corelog_prefix; ldr_log(msg); ldr_log_hex(value); ldr_log("\n")
+#include "hypervisor/common.h"
+#include "hypervisor/cpu.h"
 
 bool visor_is_vmx_supported()
 {
@@ -16,13 +13,11 @@ bool visor_is_vmx_supported()
     if (! cpuid_regs.vmx)
     {
         corelog("cpu/emulator doesn't support vmx!\n");
-        //return false;
+        return false;
     }
 
     auto vmx_basic = read_msr<ia32_vmx_basic_register>(IA32_VMX_BASIC);
     auto feature_control = read_msr<ia32_feature_control_register>(IA32_FEATURE_CONTROL);
-    corelog_hex("vmx basic: ", vmx_basic.flags);
-    corelog_hex("feature control: ", feature_control.flags);
     if (
         vmx_basic.memory_type != MEMORY_TYPE_WRITE_BACK ||
         ! feature_control.lock_bit ||
@@ -45,7 +40,7 @@ void visor_init_core()
         return;
     }
 
-    corelog("entering root mode...\n");
+    cpu_init();
 }
 
 size_t visor_init()

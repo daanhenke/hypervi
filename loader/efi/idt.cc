@@ -67,22 +67,28 @@ void efi_idt_exit()
     delete[] custom_idt;
 }
 
-u64 efi_idt_pagefault(idt_ctx* ctx)
+idt_ctx* efi_idt_pagefault(idt_ctx* ctx)
 {
     auto fucked_addr = read_cr2();
     log("\n\n\noh no, page fault :((((((((((((((((((((((((((((\n");
     log_hex("naughty ptr: ", reinterpret_cast<u64>(fucked_addr));
+
+    return ctx;
 }
 
-u64 efi_idt_invalid_opcode(idt_ctx* ctx)
+idt_ctx* efi_idt_invalid_opcode(idt_ctx* ctx)
 {
     log("\n\n\noh no, invalid instruction :((((((((((((((((((((((((((((\n");
     log_hex("naughty rip: ", reinterpret_cast<u64>(ctx->rip));
+
+    return ctx;
 }
 
 
-u64 efi_idt_general_protection_fault(idt_ctx* ctx)
+idt_ctx* efi_idt_general_protection_fault(idt_ctx* ctx)
 {
     log("\n\n\noh no, general protection fault :((((((((((((((((((((((((((((\n");
     log_hex("naughty error: ", reinterpret_cast<u64>(ctx->error_code));
+
+    return ctx;
 }

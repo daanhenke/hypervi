@@ -32,7 +32,7 @@ void efi_idt_init();
 void efi_idt_exit();
 
 #define def_stub(name) extern "C" void __idt_stub_ ## name ()
-#define def_handler(name) extern "C" u64 name (idt_ctx* ctx)
+#define def_handler(name) extern "C" idt_ctx* name (idt_ctx* ctx)
 #define def_hook(name) def_stub(name); def_handler(name)
 
 def_hook(efi_idt_pagefault);
