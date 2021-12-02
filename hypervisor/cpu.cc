@@ -1,6 +1,7 @@
 #include "hypervisor/cpu.h"
 #include "hypervisor/common.h"
 #include "freestanding/libc.h"
+#include "hypervisor/ept.h"
 
 cpu_state g_cpu_states[cpu_max];
 
@@ -50,14 +51,28 @@ size_t cpu_init()
     state->core_vmxon.must_be_zero = 0;
     corelog_hex("vmcs revision id: ", state->core_vmxon.revision_id);
 
-    corelog("Enabling vmx root mode...\n");
+    corelog("enabling vmx root mode...\n");
+
     // Enable root mode
-    //auto vmx_ptr = &state->core_vmxon;
     auto result = call_vmxon(&state->core_vmxon);
-    if (result == 0)
+    if (result != 0)
     {
-        corelog("Failed to enable root mode!!!\n");
+        corelog("failed to enable root mode!!!\n");
         return 1;
+    }
+
+    // Clear vmx caches
+    corelog("clearing caches...\n")
+    ept_invalidate_ept_cache(nullptr);
+    ept_invalidate_vpid_cache(0);
+
+    // Set up our vmcs
+    corelog_hex("setting up vmcs @ ", reinterpret_cast<size_t>(&state->core_vmcs));
+    state->core_vmcs.revision_id = vmx_basic.vmcs_revision_id;
+    if (call_vmclear(&state->core_vmcs) != 0 ||
+        call_vmptrld(&state->core_vmcs) != 0)
+    {
+        corelog("failed to set up vmcs!\n");
     }
 
     corelog("done!\n");

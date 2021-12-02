@@ -100,14 +100,47 @@ set_cs:
 .done:
     ret
 
+; all vmx instructions share a common method of checking if they succeeded
+vmx_error_tail:
+    jz .error_with_code
+    jc .error_no_code
+    xor rax, rax
+    ret
+.error_with_code:
+    mov rax, 1
+    ret
+.error_no_code:
+    mov rax, 2
+    ret
+
 global call_vmxon
 call_vmxon:
-    mov rax, 1
     push rdi
     clc
     vmxon [rsp]
-    jnc .done
-    mov rax, 0
-.done:
     pop rdi
-    ret
+    jmp vmx_error_tail
+
+global call_invept
+call_invept:
+    invept rdi, [rsi]
+    jmp vmx_error_tail
+
+global call_invvpid
+call_invvpid:
+    invvpid rdi, [rsi]
+    jmp vmx_error_tail
+
+global call_vmclear
+call_vmclear:
+    push rdi
+    vmclear [rsp]
+    pop rdi
+    jmp vmx_error_tail
+
+global call_vmptrld
+call_vmptrld:
+    push rdi
+    vmptrld [rsp]
+    pop rdi
+    jmp vmx_error_tail

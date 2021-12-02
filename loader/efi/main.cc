@@ -35,7 +35,6 @@ efi_status efi_main(efi_handle module_handle, efi_system_table* st)
     log("loader executed succesfully, press any key to continue...\n");
 
     efi_input_wait_for_key();
-    log("yep");
 
     return efi_status::success;
 }

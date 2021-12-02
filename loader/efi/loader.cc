@@ -81,7 +81,7 @@ void efi_loader_map()
 
     // Using uefi allocate to make this memory runtime moemory instead of boottime
     gST->boot_services->allocate_pages(
-        efi_allocate_type::allocate_max_address,
+        efi_allocate_type::allocate_any_pages,
         efi_memory_type::runtime_services_code,
         NUM_PAGES(mapper.get_mapped_size()),
         reinterpret_cast<void**>(&visor_mapped)

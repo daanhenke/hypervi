@@ -74,4 +74,9 @@ typedef union
 
 asmapi void call_cpuid(cpuid_t* regs);
 
-asmapi size_t call_vmxon(void* vmcs);
+asmapi size_t call_vmxon(void* vmxon);
+asmapi size_t call_vmclear(void* vmcs);
+asmapi size_t call_vmptrld(void* vmcs);
+
+asmapi size_t call_invept(invept_type type, const invept_descriptor* descriptor);
+asmapi size_t call_invvpid(invvpid_type type, const invvpid_descriptor* descriptor);

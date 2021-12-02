@@ -1,6 +1,7 @@
 #include "loader/efi/console.h"
 #include "loader/efi/gfx.h"
 #include "freestanding/libc.h"
+#include "loader/efi/mp.h"
 #include "logo.png.h"
 
 efi_console_ctx ctx;
@@ -12,8 +13,8 @@ void efi_console_init()
 
     size_t char_width, char_height;
     efi_gfx_get_char_size(&char_width, &char_height);
-    ctx.rows = (screen_width - logo_image_width) / char_width;
-    ctx.columns = screen_height / char_height;
+    ctx.rows = 120; //(screen_width - logo_image_width) / char_width;
+    ctx.columns = 70;
 
     ctx.char_width = char_width;
     ctx.char_height = char_height;
@@ -25,7 +26,6 @@ void efi_console_init()
     gST->boot_services->allocate_pages(efi_allocate_type::allocate_any_pages, efi_memory_type::boot_services_data, NUM_PAGES(ctx.buffer_size), reinterpret_cast<void**>(&ctx.buffer));
 
     _stosb(ctx.buffer, 0, ctx.buffer_size);
-    //efi_console_fill('\0', 0);
 }
 
 void efi_console_setcell(size_t x, size_t y, char character, char attribute)
@@ -70,6 +70,14 @@ void efi_console_write(char* message)
 
     while (*curr_char != '\0')
     {
+        if (ctx.current_column >= ctx.columns)
+        {
+            ctx.current_column = 0;
+            ctx.current_row = 0;
+
+            efi_console_fill(0x20, 0);
+        }
+
         switch (*curr_char)
         {
         case '\n':
@@ -90,7 +98,7 @@ void efi_console_write(char* message)
         curr_char++;
     }
 
-    efi_console_draw();
+    if (efi_mp_whoami() == 0) efi_console_draw();
 }
 
 void efi_console_write(const char* message)

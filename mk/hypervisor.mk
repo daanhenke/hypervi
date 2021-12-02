@@ -22,7 +22,8 @@ $(eval $(call add_targets,hypervisor))
 HYPERVISOR_SOURCES := \
 	$(FREESTANDING_SOURCES) \
 	hypervisor/main.cc \
-	hypervisor/cpu.cc
+	hypervisor/cpu.cc \
+	hypervisor/ept.cc
 $(eval $(call convert_sources,HYPERVISOR))
 
 $(DIR_OBJ)/$(current_target_name)/%.cc.o: $(DIR_SOURCE)/%.cc
