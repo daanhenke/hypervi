@@ -110,8 +110,32 @@ size_t cpu_init()
     vmentry_ctls.ia32e_mode_guest = true;
     vmentry_ctls.flags = cpu_alter_vmx_control_register(vmentry_ctls.flags, vmx_basic.vmx_controls != 0 ? IA32_VMX_TRUE_ENTRY_CTLS : IA32_VMX_ENTRY_CTLS);
 
-    // Writing state to vmcs
-    corelog("Writing guest state to vmcs...\n");
+    segment_descriptor_register_64 gdtr;
+    segment_descriptor_register_64 idtr;
+    read_gdtr(&gdtr);
+    read_idtr(&idtr);
+
+    corelog("writing guest state to vmcs...\n");
+
+    // 32 & 64 bit host state fields
+    cpu_vmxwrite(VMCS_HOST_SYSENTER_CS, read_msr(IA32_SYSENTER_CS));
+    cpu_vmxwrite(VMCS_HOST_EFER, read_msr(IA32_EFER));
+
+    // natural width host state fields
+    cpu_vmxwrite(VMCS_HOST_CR0, read_cr0());
+    cpu_vmxwrite(VMCS_HOST_CR3, read_cr3());
+    cpu_vmxwrite(VMCS_HOST_CR4, read_cr4());
+    cpu_vmxwrite(VMCS_HOST_FS_BASE, read_msr(IA32_FS_BASE));
+    cpu_vmxwrite(VMCS_HOST_GS_BASE, read_msr(IA32_GS_BASE));
+    // TODO: HOST TR
+    cpu_vmxwrite(VMCS_HOST_GDTR_BASE, gdtr.base_address);
+    cpu_vmxwrite(VMCS_HOST_IDTR_BASE, idtr.base_address);
+    cpu_vmxwrite(VMCS_HOST_SYSENTER_ESP, read_msr(IA32_SYSENTER_ESP));
+    cpu_vmxwrite(VMCS_HOST_SYSENTER_EIP, read_msr(IA32_SYSENTER_EIP));
+    // TODO: ACTUALLY FILL THESE
+    cpu_vmxwrite(VMCS_HOST_RSP, 0);
+    cpu_vmxwrite(VMCS_HOST_RIP, 0);
+
     cpu_vmxwrite(VMCS_CTRL_VMEXIT_CONTROLS, vmexit_ctls.flags);
     cpu_vmxwrite(VMCS_CTRL_VMENTRY_CONTROLS, vmentry_ctls.flags);
 
