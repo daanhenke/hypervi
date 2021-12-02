@@ -102,10 +102,12 @@ set_cs:
 
 global call_vmxon
 call_vmxon:
-    mov rax, rdi
+    mov rax, 1
+    push rdi
     clc
-    vmxon [rax]
+    vmxon [rsp]
     jnc .done
     mov rax, 0
 .done:
+    pop rdi
     ret

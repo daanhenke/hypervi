@@ -53,7 +53,7 @@ void efi_idt_init()
         entry->isr_mid = static_cast<u16>(ptr >> 16);
         entry->isr_high = static_cast<u32>(ptr >> 32);
 
-        log_hex("kernel cs: ", entry->kernel_cs);
+        if (i == 0) log_hex("kernel cs: ", entry->kernel_cs);
     }
 
     log("overwriting idtr\n");

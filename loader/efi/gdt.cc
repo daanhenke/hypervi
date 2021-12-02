@@ -79,9 +79,7 @@ void efi_gdt_init()
     memset(&new_tss, 0, sizeof(new_tss));
 
     write_gdtr(&new_gdtr);
-    log("far jumpin\n");
     set_cs(0x38);
-    log("far jumpin done\n");
     write_tr(tr.flags);
 }
 

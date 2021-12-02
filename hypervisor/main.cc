@@ -21,8 +21,8 @@ bool visor_is_vmx_supported()
     corelog_hex("feature control: ", feature_control.enable_vmx_inside_smx);
     if (
         vmx_basic.memory_type != MEMORY_TYPE_WRITE_BACK ||
-        ! feature_control.lock_bit ||
-        ! feature_control.enable_vmx_outside_smx
+        feature_control.lock_bit == 0 ||
+        feature_control.enable_vmx_outside_smx == 0
     )
     {
         corelog("not all required vmx features are supported\n");

@@ -52,6 +52,7 @@ size_t cpu_init()
 
     corelog("Enabling vmx root mode...\n");
     // Enable root mode
+    //auto vmx_ptr = &state->core_vmxon;
     auto result = call_vmxon(&state->core_vmxon);
     if (result == 0)
     {

@@ -8,7 +8,7 @@ const efi_guid file_info_guid = efi_file_info_guid;
 
 efi_fp* visor_file = nullptr;
 char* visor_real = nullptr;
-char* visor_mapped = nullptr;
+char* visor_mapped = reinterpret_cast<char*>(0x00800000);
 
 size_t (*hypervisor_main)(hv_init_struct* init);
 
@@ -81,11 +81,13 @@ void efi_loader_map()
 
     // Using uefi allocate to make this memory runtime moemory instead of boottime
     gST->boot_services->allocate_pages(
-        efi_allocate_type::allocate_any_pages,
+        efi_allocate_type::allocate_max_address,
         efi_memory_type::runtime_services_code,
         NUM_PAGES(mapper.get_mapped_size()),
         reinterpret_cast<void**>(&visor_mapped)
     );
+
+    log_hex("hypervisor mapped @ ", reinterpret_cast<u64>(visor_mapped));
 
     mapper.map_to(visor_mapped);
     hypervisor_main = mapper.get_entrypoint<decltype(hypervisor_main)>();
