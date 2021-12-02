@@ -139,6 +139,9 @@ size_t cpu_init()
     cpu_vmxwrite(VMCS_CTRL_VMEXIT_CONTROLS, vmexit_ctls.flags);
     cpu_vmxwrite(VMCS_CTRL_VMENTRY_CONTROLS, vmentry_ctls.flags);
 
-    corelog("done!\n");
+    corelog("done! calling vmresume\n");
+    call_vmresume();
+    corelog("oh no, we returned from vmresume!!!!!!!!!!!!!!!!!!\n");
+
     return 0;
 }

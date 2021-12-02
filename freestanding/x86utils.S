@@ -149,3 +149,8 @@ global call_vmwrite
 call_vmwrite:
     vmwrite rdi, rsi
     jmp vmx_error_tail
+
+global call_vmresume
+call_vmresume:
+    vmresume
+    ret
