@@ -13,6 +13,18 @@ write_%1:
     ret
 %endmacro
 
+%macro rw_r16 1
+global read_%1
+read_%1:
+    mov ax, %1
+    ret
+
+global write_%1
+write_%1:
+    mov %1, di
+    ret
+%endmacro
+
 %macro rw_ir 1
 global read_%1r
 read_%1r:
@@ -30,6 +42,13 @@ rw_cr cr1
 rw_cr cr2
 rw_cr cr3
 rw_cr cr4
+
+rw_r16 es
+rw_r16 cs
+rw_r16 ss
+rw_r16 ds
+rw_r16 fs
+rw_r16 gs
 
 rw_ir gdt
 
@@ -74,6 +93,30 @@ clear_tr:
     clts
     ret
 
+global read_ldtr
+read_ldtr:
+    sldt ax
+    ret
+
+global call_lsl
+call_lsl:
+    lsl rax, rdi
+
+global call_lar
+call_lar:
+    mov rax, 0
+    lar rax, rdi
+    jz .done
+    xor rax, rax
+.done:
+    ret
+
+global read_rflags
+read_rflags:
+    pushfq
+    pop rax
+    ret
+
 global call_cpuid
 call_cpuid:
     push rbx
@@ -98,6 +141,22 @@ set_cs:
     push rax
     o64 retf
 .done:
+    ret
+
+global call_bsf
+call_bsf:
+    bsf rax, rdi
+    ret
+
+global get_rsp
+get_rsp:
+    mov rax, rsp
+    add rax, 8
+    ret
+
+global get_rip
+get_rip:
+    mov rax, [rsp]
     ret
 
 ; all vmx instructions share a common method of checking if they succeeded
@@ -150,7 +209,12 @@ call_vmwrite:
     vmwrite rdi, rsi
     jmp vmx_error_tail
 
-global call_vmresume
-call_vmresume:
-    vmresume
-    ret
+global call_vmread
+call_vmread:
+    vmread [rsi], rdi
+    jmp vmx_error_tail
+
+global call_vmlaunch
+call_vmlaunch:
+    vmlaunch
+    jmp vmx_error_tail

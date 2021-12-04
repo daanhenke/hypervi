@@ -69,9 +69,8 @@ void efi_idt_exit()
 
 idt_ctx* efi_idt_pagefault(idt_ctx* ctx)
 {
-    auto fucked_addr = read_cr2();
     log("\n\n\noh no, page fault :((((((((((((((((((((((((((((\n");
-    log_hex("naughty ptr: ", reinterpret_cast<u64>(fucked_addr));
+    log_hex("naughty address: ", read_cr2());
 
     return ctx;
 }
@@ -89,6 +88,9 @@ idt_ctx* efi_idt_general_protection_fault(idt_ctx* ctx)
 {
     log("\n\n\noh no, general protection fault :((((((((((((((((((((((((((((\n");
     log_hex("naughty error: ", reinterpret_cast<u64>(ctx->error_code));
+    log_hex("naughty address: ", read_cr2());
+
+    while (true);
 
     return ctx;
 }

@@ -66,6 +66,7 @@ void efi_gdt_init()
     auto new_gdt32 = reinterpret_cast<segment_descriptor_32*>(new_gdt);
     auto tss_descriptor = reinterpret_cast<tss_gdt_entry*>(&new_gdt32[tr.index]);
     auto tss_ptr = reinterpret_cast<u64>(&new_tss);
+    log_hex("tss ptr: ", tss_ptr);
 
     memset(tss_descriptor, 0, sizeof(segment_descriptor_64));
     tss_descriptor->len = sizeof(new_tss) - 1;

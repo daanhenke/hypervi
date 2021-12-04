@@ -1,5 +1,6 @@
 #include "loader/efi/console.h"
 #include "loader/efi/gfx.h"
+#include "loader/efi/input.h"
 #include "freestanding/libc.h"
 #include "loader/efi/mp.h"
 #include "logo.png.h"
@@ -75,6 +76,7 @@ void efi_console_write(char* message)
             ctx.current_column = 0;
             ctx.current_row = 0;
 
+            efi_input_wait_for_key();
             efi_console_fill(0x20, 0);
         }
 

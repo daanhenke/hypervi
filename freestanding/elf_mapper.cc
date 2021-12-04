@@ -34,11 +34,17 @@ size_t elf_mapper::get_mapped_size()
 void elf_mapper::map_to(void* target_mem)
 {
     m_mapped = reinterpret_cast<char*>(target_mem);
+    log_hex("elf base @", reinterpret_cast<u64>(m_mapped));
+
+    _movsb(m_mapped, m_ehdr, sizeof(elf64_ehdr));
 
     for (size_t i = 0; i < m_ehdr->e_phnum; i++)
     {
         auto section = m_phdrs[i];
         auto target = m_mapped + section.p_vaddr;
+
+        //log_hex("mapping section ", i);
+        //log_hex("to ", reinterpret_cast<size_t>(target));
 
         _movsb(target, m_file + section.p_offset, section.p_filesz);
     }
@@ -89,13 +95,14 @@ void elf_mapper::map_to(void* target_mem)
         break;
     }
 
-    // Log symbols
+    //Log symbols
     // for (size_t i = 0; i < symbol_count; i++)
     // {
-    //     log("found symbol: ");
     //     auto text = m_file + string_section.sh_offset + symbols[i].st_name;
+    //     if (*text == '\0') continue;
+    //     log("found symbol: ");
     //     log(text);
-    //     log("\n");
+    //     log("  ");
     // }
 
 
@@ -112,6 +119,19 @@ void elf_mapper::map_to(void* target_mem)
     {
         auto section = m_shdrs[i];
 
+        auto section_name = m_file + string_section.sh_offset + section.sh_name;
+
+        if (strcmp(section_name, ".got") == 0)
+        {
+            auto got = reinterpret_cast<void**>(m_mapped + section.sh_addr);
+            auto size = section.sh_size / sizeof(void*);
+            for (size_t i = 0; i < size; i++)
+            {
+                //log_hex("got entry: ", reinterpret_cast<size_t>(got[i]));
+                got[i] = reinterpret_cast<void*>(m_mapped + reinterpret_cast<size_t>(got[i]));
+            }
+        }
+
         if (section.sh_type == elf_section_type::rela)
         {
             auto reloc_count = section.sh_size / sizeof(elf64_rela);
@@ -124,14 +144,25 @@ void elf_mapper::map_to(void* target_mem)
                 auto sym = elf64_r_get_sym(info);
 
                 auto reloc_name = m_file + dynstr_section->sh_offset + dynsyms[sym].st_name;
-                size_t* reloc_ptr = nullptr;
+                size_t* reloc_ptr = reinterpret_cast<size_t*>(m_mapped + relocs[reli].r_offset);
 
                 switch (type)
                 {
+                case elf64_r_type::x86_64_relative:
+                    *reloc_ptr += reinterpret_cast<size_t>(m_mapped);
+                    break;
                 case elf64_r_type::x86_64_junp_slot:
                 case elf64_r_type::x86_64_glob_dat:
-                    reloc_ptr = reinterpret_cast<size_t*>(m_mapped + relocs[reli].r_offset);
-                    *reloc_ptr = reinterpret_cast<size_t>(resolve_import(reloc_name));
+                    if (dynsyms[sym].st_value == 0)
+                    {
+                        *reloc_ptr = reinterpret_cast<size_t>(resolve_import(reloc_name));
+                    }
+                    else
+                    {
+                        //log("relocating internal");
+                        *reloc_ptr = dynsyms[sym].st_value + relocs[i].r_addend;
+                    }
+
                     break;
 
                 default:
@@ -139,9 +170,9 @@ void elf_mapper::map_to(void* target_mem)
                     break;
                 }
 
-                log("relocated sym '");
-                log(reloc_name);
-                log_hex("' to ", *reloc_ptr);
+                // log("relocated sym '");
+                // log(reloc_name);
+                // log_hex("' to ", *reloc_ptr);
             }
         }
     }
@@ -173,9 +204,6 @@ char* elf_mapper::get_section_by_name(const char* target_name)
     {
         auto section = m_shdrs[i];
         auto name = get_string(section.sh_name);
-
-        //log(name);
-        //log("\n");
 
         if (strcmp(name, target_name) == 0)
         {

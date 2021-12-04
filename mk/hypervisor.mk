@@ -8,10 +8,12 @@ HYPERVISOR_CFLAGS := \
 HYPERVISOR_CXXFLAGS := \
 	$(FREESTANDING_CXXFLAGS) \
 	-I $(DIR_ASSETS_OUT) \
-	-DVIOLET
+	-DVIOLET \
+	-fpie -fpic \
+	-fno-threadsafe-statics
 
 HYPERVISOR_LDFLAGS := \
-	-e visor_main
+	-e visor_main -pie
 
 HYPERVISOR_ASMFLAGS := \
 	-g -f elf64
@@ -23,7 +25,9 @@ HYPERVISOR_SOURCES := \
 	$(FREESTANDING_SOURCES) \
 	hypervisor/main.cc \
 	hypervisor/cpu.cc \
-	hypervisor/ept.cc
+	hypervisor/ept.cc \
+	hypervisor/host.S \
+	hypervisor/host.cc
 $(eval $(call convert_sources,HYPERVISOR))
 
 $(DIR_OBJ)/$(current_target_name)/%.cc.o: $(DIR_SOURCE)/%.cc

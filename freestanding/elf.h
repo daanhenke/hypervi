@@ -41,7 +41,8 @@ enum class elf64_r_type : u32
     x86_64_pc32,
     x86_64_copy = 5,
     x86_64_glob_dat,
-    x86_64_junp_slot
+    x86_64_junp_slot,
+    x86_64_relative
 };
 
 #define elf64_r_get_type(x) static_cast<elf64_r_type>(x)
