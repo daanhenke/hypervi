@@ -1,8 +1,8 @@
 #include "hypervisor/cpu.h"
 #include "hypervisor/common.h"
 #include "freestanding/libc.h"
-#include "hypervisor/ept.h"
 #include "hypervisor/host.h"
+#include "hypervisor/ept.h"
 
 cpu_state g_cpu_states[cpu_max];
 
@@ -123,6 +123,7 @@ size_t cpu_init()
     state->status_code = 0;
     memset(&state->core_vmxon, 0, sizeof(vmxon));
     memset(&state->core_vmcs, 0, sizeof(vmcs));
+    memset(&state->core_msr_bitmap, 0, sizeof(vmx_msr_bitmap));
     memset(&state->host_stack, 0, sizeof(state->host_stack));
 
     corelog("setting control registers\n");
@@ -197,18 +198,18 @@ size_t cpu_init()
 
     ia32_vmx_procbased_ctls_register procbased_ctls;
     procbased_ctls.flags = 0;
-    procbased_ctls.use_msr_bitmaps = 0;
-    procbased_ctls.activate_secondary_controls = 1; // TODO: FLIP AND FIX SECONDARY CTRLS
+    procbased_ctls.use_msr_bitmaps = 1;
+    procbased_ctls.activate_secondary_controls = 1;
     procbased_ctls.flags = cpu_alter_vmx_control_register(procbased_ctls.flags, vmx_basic.vmx_controls != 0 ? IA32_VMX_TRUE_PROCBASED_CTLS : IA32_VMX_PROCBASED_CTLS);
 
     ia32_vmx_procbased_ctls2_register procbased2_ctls;
     procbased2_ctls.flags = 0;
-    procbased2_ctls.enable_ept = 0;
+    procbased2_ctls.enable_ept = 1;
     procbased2_ctls.enable_vpid = 1;
     procbased2_ctls.enable_rdtscp = 1;
-    procbased2_ctls.unrestricted_guest = 0;
+    procbased2_ctls.unrestricted_guest = 1;
     procbased2_ctls.enable_invpcid = 1;
-    procbased2_ctls.enable_xsaves = 0;
+    procbased2_ctls.enable_xsaves = 1;
     procbased2_ctls.flags = cpu_alter_vmx_control_register(procbased2_ctls.flags, IA32_VMX_PROCBASED_CTLS2);
 
     segment_descriptor_register_64 gdtr;
@@ -218,6 +219,15 @@ size_t cpu_init()
 
     auto saved_stack = get_rsp();
     auto saved_rip = get_rip();
+
+    if (state->status_code == 1)
+    {
+        corelog("success!");
+    }
+
+    state->status_code = 1;
+
+    ept_init_core(state);
 
     corelog("writing guest state to vmcs...\n");
 
@@ -254,8 +264,8 @@ size_t cpu_init()
     cpu_vmxwrite(VMCS_CTRL_VIRTUAL_PROCESSOR_IDENTIFIER, 1);
 
     // 64 bit control fields
-    cpu_vmxwrite(VMCS_CTRL_MSR_BITMAP_ADDRESS, 0);
-    cpu_vmxwrite(VMCS_CTRL_EPT_POINTER, 0);
+    cpu_vmxwrite(VMCS_CTRL_MSR_BITMAP_ADDRESS, reinterpret_cast<u64>(&state->core_msr_bitmap));
+    cpu_vmxwrite(VMCS_CTRL_EPT_POINTER, state->core_ept.ptr.flags);
 
     // 32 bit control fields width control fields
     cpu_vmxwrite(VMCS_CTRL_EXCEPTION_BITMAP, 0);
@@ -281,14 +291,16 @@ size_t cpu_init()
     cpu_vmxwrite(VMCS_GUEST_LDTR_SELECTOR, read_ldtr());
     cpu_vmxwrite(VMCS_GUEST_TR_SELECTOR, read_tr());
 
-    cpu_vmxwrite(VMCS_GUEST_ES_BASE, 0);
-    cpu_vmxwrite(VMCS_GUEST_CS_BASE, 0);
-    cpu_vmxwrite(VMCS_GUEST_SS_BASE, 0);
-    cpu_vmxwrite(VMCS_GUEST_DS_BASE, 0);
+    // cpu_vmxwrite(VMCS_GUEST_ES_BASE, get_segment_base(gdtr.base_address, read_es()));
+    // cpu_vmxwrite(VMCS_GUEST_CS_BASE, get_segment_base(gdtr.base_address, read_cs()));
+    // cpu_vmxwrite(VMCS_GUEST_SS_BASE, get_segment_base(gdtr.base_address, read_ss()));
+    // cpu_vmxwrite(VMCS_GUEST_DS_BASE, get_segment_base(gdtr.base_address, read_ds()));
 
     // 64 bit guest state fields
-    cpu_vmxwrite(VMCS_GUEST_VMCS_LINK_POINTER, 0xFFFFFFFFFFFFFFFF);
+    cpu_vmxwrite(VMCS_GUEST_VMCS_LINK_POINTER, ~0ull);
     cpu_vmxwrite(VMCS_GUEST_EFER, read_msr(IA32_EFER));
+
+    //cpu_vmxwrite(VMCS_GUEST_INTERRUPTIBILITY_STATE, 0);
 
     // 32 bit guest state fields
     cpu_vmxwrite(VMCS_GUEST_ES_LIMIT, get_segment_limit(read_es()));
@@ -326,8 +338,14 @@ size_t cpu_init()
     cpu_vmxwrite(VMCS_GUEST_RFLAGS, read_rflags());
     cpu_vmxwrite(VMCS_GUEST_SYSENTER_ESP, read_msr(IA32_SYSENTER_ESP));
     cpu_vmxwrite(VMCS_GUEST_SYSENTER_EIP, read_msr(IA32_SYSENTER_EIP));
+    // cpu_vmxwrite(VMCS_GUEST_DEBUGCTL, read_msr(IA32_DEBUGCTL));
+    // cpu_vmxwrite(VMCS_GUEST_DR7, read_dr7());
 
-    cpu_dumpvmcs();
+    //cpu_dumpvmcs();
+    if (! cpu_vmxcheck())
+    {
+        corelog("vmx state check failed\n");
+    }
 
     host_vmexit_ptr = reinterpret_cast<size_t>(host_vmexit);
 
@@ -344,7 +362,7 @@ size_t cpu_init()
     }
     else
     {
-        corelog("we hypervibing\n");
+        corelog("how did we get here\n");
     }
 
     return 0;

@@ -12,5 +12,10 @@ void host_vmexit(u64 rsp)
     if (reason.vm_entry_failure)
     {
         corelog("failed to launch vm! big sad :(\n");
+        corelog_hex("exit qualifications: ", cpu_vmxread(VMCS_EXIT_QUALIFICATION));
+        corelog_hex("int err code: ", cpu_vmxread(VMCS_VMEXIT_INSTRUCTION_INFO));
+        corelog_hex("int err code: ", cpu_vmxread(VMCS_VMEXIT_INTERRUPTION_ERROR_CODE));
     }
+
+    cpu_vmxcheck();
 }

@@ -36,3 +36,6 @@ __idt_stub_%1:
 idt_entry_with_error efi_idt_pagefault
 idt_entry_without_error efi_idt_invalid_opcode
 idt_entry_with_error efi_idt_general_protection_fault
+idt_entry_with_error efi_idt_stack_segment_fault
+idt_entry_with_error efi_idt_invalid_tss
+idt_entry_with_error efi_idt_segment_not_present

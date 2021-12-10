@@ -27,7 +27,8 @@ HYPERVISOR_SOURCES := \
 	hypervisor/cpu.cc \
 	hypervisor/ept.cc \
 	hypervisor/host.S \
-	hypervisor/host.cc
+	hypervisor/host.cc \
+	hypervisor/vmxcheck.cc
 $(eval $(call convert_sources,HYPERVISOR))
 
 $(DIR_OBJ)/$(current_target_name)/%.cc.o: $(DIR_SOURCE)/%.cc

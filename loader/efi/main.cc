@@ -18,19 +18,20 @@ efi_status efi_main(efi_handle module_handle, efi_system_table* st)
     efi_mp_init();
     efi_gfx_init();
     efi_console_init();
-    log_hex("number of cores: ", efi_mp_get_core_count());
+    //log_hex("number of cores: ", efi_mp_get_core_count());
 
     efi_allocator_init();
-    efi_fs_init();
 
-    efi_gdt_init();
     efi_idt_init();
+    efi_gdt_init();
+
+    efi_fs_init();
 
     efi_loader_init();
     efi_loader_map();
 
-    efi_idt_exit();
     efi_gdt_exit();
+    efi_idt_exit();
 
     log("loader executed succesfully, press any key to continue...\n");
 

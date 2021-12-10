@@ -1,4 +1,5 @@
 #include "hypervisor/ept.h"
+#include "hypervisor/cpu.h"
 #include "hypervisor/common.h"
 #include "freestanding/x86utils.h"
 #include "freestanding/libc.h"
@@ -109,8 +110,148 @@ void ept_init_mtrr()
         mtrr.range_end = mtrr.range_begin + size - 1;
     }
 
-    ept_dump_mtrrs();
+    //ept_dump_mtrrs();
 }
+
+u64 ept_get_memory_type(u64 start, u64 size)
+{
+    u64 result = MEMORY_TYPE_INVALID;
+
+    for (auto i = 0; i < max_mtrrs; i++)
+    {
+        auto& mtrr = g_mtrrs[i];
+
+        if (! mtrr.enabled) break;
+
+        if (start < mtrr.range_begin || start >= mtrr.range_end)
+        {
+            continue;
+        }
+
+        if (start + size - 1 >= mtrr.range_end)
+        {
+            return MEMORY_TYPE_INVALID;
+        }
+
+        if (mtrr.fixed)
+        {
+            return mtrr.type;
+        }
+
+        if (mtrr.type == MEMORY_TYPE_UNCACHEABLE)
+        {
+            return MEMORY_TYPE_UNCACHEABLE;
+        }
+
+        if (mtrr.type == MEMORY_TYPE_WRITE_THROUGH && result == MEMORY_TYPE_WRITE_BACK)
+        {
+            result = MEMORY_TYPE_WRITE_THROUGH;
+        }
+        else if (mtrr.type == MEMORY_TYPE_WRITE_BACK && result == MEMORY_TYPE_WRITE_THROUGH)
+        {
+            result = MEMORY_TYPE_WRITE_THROUGH;
+        }
+        else
+        {
+            result = mtrr.type;
+        }
+    }
+
+    if (result == MEMORY_TYPE_INVALID)
+    {
+        return g_default_memory_type;
+    }
+
+    return result;
+}
+
+void ept_init_core(cpu_state* state)
+{
+    corelog("setting up ept\n");
+
+    auto& structs = state->core_ept;
+
+    memset(&structs.pml4, 0, sizeof(ept_pml4));
+    memset(&structs.pdpt, 0, sizeof(epdpte) * 512);
+    memset(&structs.pde, 0, sizeof(epde_2mb) * 512);
+
+    structs.pml4.read_access = true;
+    structs.pml4.write_access = true;
+    structs.pml4.execute_access = true;
+    structs.pml4.page_frame_number = reinterpret_cast<u64>(structs.pdpt) >> 12;
+
+    u64 old_mem_type = 0; // debug var
+    u64 current_pt_index = 0;
+    for (size_t pdpt_i = 0; pdpt_i < 512; pdpt_i++)
+    {
+        auto& pdpt = structs.pdpt[pdpt_i];
+
+        pdpt.read_access = true;
+        pdpt.write_access = true;
+        pdpt.execute_access = true;
+        pdpt.page_frame_number = reinterpret_cast<u64>(structs.pde[pdpt_i]) >> 12;
+
+        for (size_t pde_i = 0; pde_i < 512; pde_i++)
+        {
+            auto pde_big = reinterpret_cast<epde_2mb*>(&structs.pde[pdpt_i][pde_i]);
+            auto addr = pt_to_address(0, pdpt_i, pde_i, 0);
+
+            auto mem_type = ept_get_memory_type(addr, 0x200000);
+
+            if (mem_type != old_mem_type)
+            {
+                old_mem_type = mem_type;
+                corelog_hex("different memory type: ", mem_type);
+            }
+
+            pde_big->read_access = true;
+            pde_big->write_access = true;
+            pde_big->execute_access = true;
+
+            if (mem_type != MEMORY_TYPE_INVALID)
+            {
+                pde_big->large_page = true;
+                pde_big->memory_type = mem_type;
+                pde_big->page_frame_number = addr >> 12;
+            }
+            else
+            {
+                corelog("splitting pde\n");
+                auto pde = reinterpret_cast<epde*>(pde_big);
+
+                pde->page_frame_number = reinterpret_cast<size_t>(structs.pt[pdpt_i][pde_i]) >> 12;
+
+                for (size_t pt_i = 0; pt_i < 512; pt_i++)
+                {
+                    auto& pt = structs.pt[pdpt_i][pde_i][pt_i];
+
+                    pt.read_access = true;
+                    pt.write_access = true;
+                    pt.execute_access = true;
+
+                    auto addr = pt_to_address(0, pdpt_i, pde_i, pt_i);
+                    pt.memory_type = ept_get_memory_type(addr, 0x1000);
+                    pt.page_frame_number = addr >> 12;
+
+                    if (pt.memory_type == MEMORY_TYPE_INVALID)
+                    {
+                        corelog("ERR in ept: fucked up pt entries!!!\n");
+                    }
+                }
+            }
+        }
+    }
+
+    structs.ptr.flags = 0;
+    structs.ptr.memory_type = MEMORY_TYPE_WRITE_BACK;
+    structs.ptr.page_walk_length = EPT_PAGE_WALK_LENGTH_4;
+    structs.ptr.page_frame_number = reinterpret_cast<u64>(&structs.pml4) >> 12;
+}
+
+// u64 ept_get_ptr(cpu_state* state)
+// {
+//     return reinterpret_cast<u64>(&state->core_ept.ptr);
+// }
 
 void ept_invalidate_ept_cache(void* ept_ptr)
 {

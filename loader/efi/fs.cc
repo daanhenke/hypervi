@@ -33,10 +33,11 @@ void efi_fs_init()
 
         char label_c[512];
         efi_string_to_cstring(label.volume_label, label_c);
+        label_c[511] = '\0';
 
         log("found drive: ");
         log(label_c);
-        log("\n");
+        log("!\n");
     }
 }
 

@@ -3,6 +3,7 @@
 #include "loader/efi/input.h"
 #include "freestanding/libc.h"
 #include "loader/efi/mp.h"
+#include "freestanding/efi.h"
 #include "logo.png.h"
 
 efi_console_ctx ctx;

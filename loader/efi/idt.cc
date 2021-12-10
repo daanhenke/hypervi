@@ -21,6 +21,9 @@ typedef struct
 static idt_hook_t hooks[] =
 {
     { 0x6, __idt_stub_efi_idt_invalid_opcode },
+    { 0xA, __idt_stub_efi_idt_invalid_tss },
+    { 0xB, __idt_stub_efi_idt_segment_not_present },
+    { 0xC, __idt_stub_efi_idt_stack_segment_fault },
     { 0xD, __idt_stub_efi_idt_general_protection_fault },
     { 0xE, __idt_stub_efi_idt_pagefault }
 };
@@ -83,7 +86,6 @@ idt_ctx* efi_idt_invalid_opcode(idt_ctx* ctx)
     return ctx;
 }
 
-
 idt_ctx* efi_idt_general_protection_fault(idt_ctx* ctx)
 {
     log("\n\n\noh no, general protection fault :((((((((((((((((((((((((((((\n");
@@ -91,6 +93,30 @@ idt_ctx* efi_idt_general_protection_fault(idt_ctx* ctx)
     log_hex("naughty address: ", read_cr2());
 
     while (true);
+
+    return ctx;
+}
+
+idt_ctx* efi_idt_stack_segment_fault(idt_ctx* ctx)
+{
+    log("\n\n\noh no, stack segment fault :((((((((((((((((((((((((((((\n");
+    log_hex("naughty rip: ", reinterpret_cast<u64>(ctx->rip));
+
+    return ctx;
+}
+
+idt_ctx* efi_idt_invalid_tss(idt_ctx* ctx)
+{
+    log("\n\n\noh no, invalid tss :((((((((((((((((((((((((((((\n");
+    log_hex("naughty rip: ", reinterpret_cast<u64>(ctx->rip));
+
+    return ctx;
+}
+
+idt_ctx* efi_idt_segment_not_present(idt_ctx* ctx)
+{
+    log("\n\n\noh no, segment not present :((((((((((((((((((((((((((((\n");
+    log_hex("naughty rip: ", reinterpret_cast<u64>(ctx->rip));
 
     return ctx;
 }

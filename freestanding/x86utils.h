@@ -27,6 +27,9 @@ asmapi void write_cr3(size_t new_cr3);
 asmapi size_t read_cr4();
 asmapi void write_cr4(size_t new_cr4);
 
+asmapi size_t read_dr7();
+asmapi void write_dr7(size_t new_dr7);
+
 asmapi u16 read_es();
 asmapi void write_es(u16 new_es);
 
@@ -46,6 +49,7 @@ asmapi u16 read_gs();
 asmapi void write_gs(u16 new_es);
 
 asmapi size_t read_msr(u32 msr_id);
+asmapi void write_msr(u32 msr_id, u64 value);
 
 asmapi u64 read_rflags();
 

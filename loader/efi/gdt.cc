@@ -49,7 +49,7 @@ void efi_gdt_init()
     read_gdtr(&efi_gdtr);
     read_gdtr(&new_gdtr);
 
-    size_t entries = new_gdtr.limit / sizeof(segment_descriptor_64);
+    size_t entries = new_gdtr.limit + 1 / sizeof(segment_descriptor_64);
     log_hex("gdt size: ", entries);
 
     new_gdt = new segment_descriptor_64[entries + 1];
@@ -80,7 +80,6 @@ void efi_gdt_init()
     memset(&new_tss, 0, sizeof(new_tss));
 
     write_gdtr(&new_gdtr);
-    set_cs(0x38);
     write_tr(tr.flags);
 }
 
@@ -89,5 +88,4 @@ void efi_gdt_exit()
     log("resetting gdt\n");
     clear_tr();
     write_gdtr(&efi_gdtr);
-    set_cs(0x38);
 }

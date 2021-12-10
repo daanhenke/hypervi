@@ -42,6 +42,7 @@ rw_cr cr1
 rw_cr cr2
 rw_cr cr3
 rw_cr cr4
+rw_cr dr7
 
 rw_r16 es
 rw_r16 cs
@@ -64,6 +65,15 @@ read_msr:
     or rax, rdx
 
     leave
+    ret
+
+global write_msr
+write_msr:
+    mov ecx, edi
+    mov eax, esi
+    shr rsi, 32
+    mov edx, esi
+    wrmsr
     ret
 
 global read_idtr
