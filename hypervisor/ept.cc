@@ -187,7 +187,7 @@ void ept_init_core(cpu_state* state)
 
     auto pdpts = reinterpret_cast<epdpte*>(ldr_malloc(0x1000));
     corelog_hex("pdpts allocated @ ", reinterpret_cast<u64>(pdpts));
-    memset(structs.pdpt, 0, 0x1000);
+    memset(pdpts, 0, 0x1000);
 
     pml4->flags = 0;
     pml4->read_access = true;
@@ -198,34 +198,28 @@ void ept_init_core(cpu_state* state)
     {
         auto pdpt = &pdpts[pdpt_i];
 
-        auto pde = reinterpret_cast<epde*>(ldr_malloc(0x1000));
-        memset(pde, 0, 0x1000);
+        auto pdes = reinterpret_cast<epde*>(ldr_malloc(0x1000));
+        memset(pdes, 0, 0x1000);
 
         pdpt->flags = 0;
         pdpt->read_access = true;
         pdpt->write_access = true;
         pdpt->execute_access = true;
-        pdpt->page_frame_number = reinterpret_cast<u64>(pde) >> 12;
+        pdpt->page_frame_number = reinterpret_cast<u64>(pdes) >> 12;
 
         for (size_t pde_i = 0; pde_i < 512; pde_i++)
         {
-            auto pde_big = reinterpret_cast<epde_2mb*>(&pde[pde_i]);
             auto addr = pt_to_address(0, pdpt_i, pde_i, 0);
-
-            if (pde_i == 0x3E)
-            {
-                //corelog_hex("pd addr @ ", addr);
-            }
-
             auto mem_type = ept_get_memory_type(addr, 0x200000);
 
-            pde_big->flags = 0;
-            pde_big->read_access = true;
-            pde_big->write_access = true;
-            pde_big->execute_access = true;
-
+            // Check if we can use a large page
             if (mem_type != MEMORY_TYPE_INVALID)
             {
+                auto pde_big = reinterpret_cast<epde_2mb*>(&pdes[pde_i]);
+                pde_big->flags = 0;
+                pde_big->read_access = true;
+                pde_big->write_access = true;
+                pde_big->execute_access = true;
                 pde_big->large_page = true;
                 pde_big->memory_type = mem_type;
                 pde_big->page_frame_number = (addr >> 12);
@@ -233,6 +227,7 @@ void ept_init_core(cpu_state* state)
             else
             {
                 corelog("splitting pde\n");
+                auto pde = &pdes[pde_i];
 
                 auto pts = reinterpret_cast<epte*>(ldr_malloc(0x1000));
                 memset(pts, 0, 0x1000);
