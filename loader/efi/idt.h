@@ -41,3 +41,4 @@ def_hook(efi_idt_general_protection_fault);
 def_hook(efi_idt_stack_segment_fault);
 def_hook(efi_idt_invalid_tss);
 def_hook(efi_idt_segment_not_present);
+def_hook(efi_idt_double_fault);

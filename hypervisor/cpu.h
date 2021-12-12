@@ -17,7 +17,7 @@ typedef struct cpu_state
 } cpu_state;
 
 
-#define cpu_max 8
+#define cpu_max 1
 extern cpu_state g_cpu_states[cpu_max];
 
 size_t cpu_init();

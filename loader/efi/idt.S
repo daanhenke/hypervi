@@ -39,3 +39,4 @@ idt_entry_with_error efi_idt_general_protection_fault
 idt_entry_with_error efi_idt_stack_segment_fault
 idt_entry_with_error efi_idt_invalid_tss
 idt_entry_with_error efi_idt_segment_not_present
+idt_entry_with_error efi_idt_double_fault

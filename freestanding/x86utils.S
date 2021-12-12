@@ -111,6 +111,7 @@ read_ldtr:
 global call_lsl
 call_lsl:
     lsl rax, rdi
+    ret
 
 global call_lar
 call_lar:

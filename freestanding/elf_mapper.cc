@@ -46,7 +46,14 @@ void elf_mapper::map_to(void* target_mem)
         //log_hex("mapping section ", i);
         //log_hex("to ", reinterpret_cast<size_t>(target));
 
-        _movsb(target, m_file + section.p_offset, section.p_filesz);
+        if (section.p_type & PT_LOAD)
+        {
+            _movsb(target, m_file + section.p_offset, section.p_filesz);
+        }
+        else if (section.p_memsz > 0)
+        {
+            _stosb(target, 0, section.p_memsz);
+        }
     }
 
     auto string_section = m_shdrs[m_ehdr->e_shstrndx];
@@ -127,8 +134,8 @@ void elf_mapper::map_to(void* target_mem)
             auto size = section.sh_size / sizeof(void*);
             for (size_t i = 0; i < size; i++)
             {
-                //log_hex("got entry: ", reinterpret_cast<size_t>(got[i]));
                 got[i] = reinterpret_cast<void*>(m_mapped + reinterpret_cast<size_t>(got[i]));
+                log_hex("got entry: ", reinterpret_cast<size_t>(got[i]));
             }
         }
 
@@ -150,6 +157,7 @@ void elf_mapper::map_to(void* target_mem)
                 {
                 case elf64_r_type::x86_64_relative:
                     *reloc_ptr += reinterpret_cast<size_t>(m_mapped);
+                        //log_hex("relocating rel", reinterpret_cast<u64>(*reloc_ptr));
                     break;
                 case elf64_r_type::x86_64_junp_slot:
                 case elf64_r_type::x86_64_glob_dat:
@@ -159,14 +167,14 @@ void elf_mapper::map_to(void* target_mem)
                     }
                     else
                     {
-                        //log("relocating internal");
                         *reloc_ptr = dynsyms[sym].st_value + relocs[i].r_addend;
+                        //log_hex("relocating internal", reinterpret_cast<u64>(*reloc_ptr));
                     }
 
                     break;
 
                 default:
-                    log("invalid reloc\n");
+                    log("invalid reloc!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
                     break;
                 }
 

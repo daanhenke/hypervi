@@ -37,5 +37,7 @@ void efi_mp_call_on_all_cores(ldr_coac_cb proc)
     auto core_count = efi_mp_get_core_count();
     if (core_count == 1) return;
 
+    return;
+
     mp->startup_all_aps(mp, efi_mp_proc, true, nullptr, 0, reinterpret_cast<void*>(proc), nullptr);
 }

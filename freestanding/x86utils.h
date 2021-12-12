@@ -6,6 +6,8 @@
 #define asmapi extern "C" __attribute__((sysv_abi))
 
 u64 pt_to_address(u32 pml4, u32 pdpt, u32 pd, u32 pt);
+void address_to_pt(void* address, u32* pml4, u32* pdpt, u32* pd, u32* pt);
+
 u64 get_segment_base(u64 descriptor_table_base, u16 segment_selector);
 u16 get_segment_limit(u16 segment_selector);
 u32 get_segment_access_rights_vmx(u16 selector);

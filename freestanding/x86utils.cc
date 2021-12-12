@@ -13,6 +13,17 @@ typedef union
     } indexed;
 } pt_helper;
 
+void address_to_pt(void* address, u32* pml4, u32* pdpt, u32* pd, u32* pt)
+{
+    pt_helper helper;
+
+    helper.as_u64 = reinterpret_cast<u64>(address);
+    *pml4 = helper.indexed.pml4;
+    *pdpt = helper.indexed.pdpt;
+    *pd = helper.indexed.pd;
+    *pt = helper.indexed.pt;
+}
+
 u64 pt_to_address(u32 pml4, u32 pdpt, u32 pd, u32 pt)
 {
     pt_helper helper;

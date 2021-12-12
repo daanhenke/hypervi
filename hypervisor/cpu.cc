@@ -205,7 +205,7 @@ size_t cpu_init()
     ia32_vmx_procbased_ctls2_register procbased2_ctls;
     procbased2_ctls.flags = 0;
     procbased2_ctls.enable_ept = 1;
-    procbased2_ctls.enable_vpid = 1;
+    procbased2_ctls.enable_vpid = 0;
     procbased2_ctls.enable_rdtscp = 1;
     procbased2_ctls.unrestricted_guest = 1;
     procbased2_ctls.enable_invpcid = 1;
@@ -291,10 +291,10 @@ size_t cpu_init()
     cpu_vmxwrite(VMCS_GUEST_LDTR_SELECTOR, read_ldtr());
     cpu_vmxwrite(VMCS_GUEST_TR_SELECTOR, read_tr());
 
-    // cpu_vmxwrite(VMCS_GUEST_ES_BASE, get_segment_base(gdtr.base_address, read_es()));
-    // cpu_vmxwrite(VMCS_GUEST_CS_BASE, get_segment_base(gdtr.base_address, read_cs()));
-    // cpu_vmxwrite(VMCS_GUEST_SS_BASE, get_segment_base(gdtr.base_address, read_ss()));
-    // cpu_vmxwrite(VMCS_GUEST_DS_BASE, get_segment_base(gdtr.base_address, read_ds()));
+    cpu_vmxwrite(VMCS_GUEST_ES_BASE, get_segment_base(gdtr.base_address, read_es()));
+    cpu_vmxwrite(VMCS_GUEST_CS_BASE, get_segment_base(gdtr.base_address, read_cs()));
+    cpu_vmxwrite(VMCS_GUEST_SS_BASE, get_segment_base(gdtr.base_address, read_ss()));
+    cpu_vmxwrite(VMCS_GUEST_DS_BASE, get_segment_base(gdtr.base_address, read_ds()));
 
     // 64 bit guest state fields
     cpu_vmxwrite(VMCS_GUEST_VMCS_LINK_POINTER, ~0ull);
@@ -341,14 +341,28 @@ size_t cpu_init()
     // cpu_vmxwrite(VMCS_GUEST_DEBUGCTL, read_msr(IA32_DEBUGCTL));
     // cpu_vmxwrite(VMCS_GUEST_DR7, read_dr7());
 
-    //cpu_dumpvmcs();
+    cpu_dumpvmcs();
+
+    ept_pml4* pml4;
+    epdpte* pdpt;
+    epde* pd;
+    epte* pt = nullptr;
+    ept_resolve_entries(reinterpret_cast<void*>(read_cr3()), &pml4, &pdpt, &pd, &pt);
+    u32 p4i, pdpi, pdi, pti;
+    address_to_pt(reinterpret_cast<void*>(read_cr3()), &p4i, &pdpi, &pdi, &pti);
+    epde_2mb* pdbig = reinterpret_cast<epde_2mb*>(pd);
+    corelog_hex("pml4: ", reinterpret_cast<u64>(pml4));
+    corelog_hex("pdpt: ", reinterpret_cast<u64>(pdpt));
+    corelog_hex("pd: ", reinterpret_cast<u64>(pd));
+    corelog_hex("pt: ", reinterpret_cast<u64>(pt));
+    corelog_hex("pdi: ", pdbig->page_frame_number);
+
     if (! cpu_vmxcheck())
     {
         corelog("vmx state check failed\n");
     }
 
-    host_vmexit_ptr = reinterpret_cast<size_t>(host_vmexit);
-
+    corelog_hex("guest entrypoint @ ", saved_rip);
     corelog("done! calling vmlaunch\n");
     auto status = call_vmlaunch();
     if (status != 0)

@@ -17,5 +17,20 @@ void host_vmexit(u64 rsp)
         corelog_hex("int err code: ", cpu_vmxread(VMCS_VMEXIT_INTERRUPTION_ERROR_CODE));
     }
 
+    if (reason.basic_exit_reason == VMX_EXIT_REASON_EPT_MISCONFIGURATION)
+    {
+        corelog("ept misconfigured!\n");
+
+        vmx_exit_qualification_ept_violation qualification;
+        qualification.flags = cpu_vmxread(VMCS_EXIT_QUALIFICATION);
+
+        u64 failed_address = cpu_vmxread(VMCS_EXIT_GUEST_LINEAR_ADDRESS);
+        ept_pml4* pml4;
+        epdpte* pdpt;
+        epde* pd;
+        epte* pt;
+        ept_resolve_entries(reinterpret_cast<void*>(failed_address), &pml4, &pdpt, &pd, &pt);
+    }
+
     cpu_vmxcheck();
 }

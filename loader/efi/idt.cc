@@ -21,6 +21,7 @@ typedef struct
 static idt_hook_t hooks[] =
 {
     { 0x6, __idt_stub_efi_idt_invalid_opcode },
+    { 0x8, __idt_stub_efi_idt_double_fault },
     { 0xA, __idt_stub_efi_idt_invalid_tss },
     { 0xB, __idt_stub_efi_idt_segment_not_present },
     { 0xC, __idt_stub_efi_idt_stack_segment_fault },
@@ -116,6 +117,14 @@ idt_ctx* efi_idt_invalid_tss(idt_ctx* ctx)
 idt_ctx* efi_idt_segment_not_present(idt_ctx* ctx)
 {
     log("\n\n\noh no, segment not present :((((((((((((((((((((((((((((\n");
+    log_hex("naughty rip: ", reinterpret_cast<u64>(ctx->rip));
+
+    return ctx;
+}
+
+idt_ctx* efi_idt_double_fault(idt_ctx* ctx)
+{
+    log("\n\n\noh no, double fault :((((((((((((((((((((((((((((\n");
     log_hex("naughty rip: ", reinterpret_cast<u64>(ctx->rip));
 
     return ctx;

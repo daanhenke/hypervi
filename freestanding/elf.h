@@ -45,6 +45,16 @@ enum class elf64_r_type : u32
     x86_64_relative
 };
 
+
+constexpr u32 PT_NULL         = 0;
+constexpr u32 PT_LOAD         = 1;
+constexpr u32 PT_DYNAMIC      = 2;
+constexpr u32 PT_INTERP       = 3;
+constexpr u32 PT_NOTE         = 4;
+constexpr u32 PT_SHLIB        = 5;
+constexpr u32 PT_PHDR         = 6;
+constexpr u32 PT_TLS          = 7;
+
 #define elf64_r_get_type(x) static_cast<elf64_r_type>(x)
 #define elf64_r_get_sym(x) static_cast<u32>(x >> 32)
 

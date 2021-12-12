@@ -64,13 +64,27 @@ void __attribute__((sysv_abi)) imp_call_on_all_cores(ldr_coac_cb function)
     efi_mp_call_on_all_cores(function);
 }
 
+void* __attribute__((sysv_abi)) imp_malloc(size_t size)
+{
+    void* result = nullptr;
+    auto status = gST->boot_services->allocate_pages(efi_allocate_type::allocate_any_pages, efi_memory_type::runtime_services_code, NUM_PAGES(size), &result);
+
+    if (status != efi_status::success || result == nullptr)
+    {
+        log_hex("malloc err: ", static_cast<u64>(status));
+    }
+
+    return result;
+}
+
 elf_import efi_loader_imports[] =
 {
     { "ldr_log", imp_log },
     { "ldr_log_hex", imp_log_hex },
     { "ldr_core_whoami", imp_core_whoami },
     { "ldr_core_count", imp_core_count },
-    { "ldr_call_on_all_cores", imp_call_on_all_cores }
+    { "ldr_call_on_all_cores", imp_call_on_all_cores },
+    { "ldr_malloc", imp_malloc }
 };
 
 const char* loader_name = "efi_ldr";
